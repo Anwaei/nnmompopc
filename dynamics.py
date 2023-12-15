@@ -74,11 +74,11 @@ def dynamic_function_casadi(x, u):
     Jy = config_opc.PARA_Jy
     g = config_opc.PARA_g
 
-    dx = casadi.vertcat(1/m*(T*np.cos(alpha) - D - m*g*np.sin(gamma)),
-                    1/(m*V)*(T*np.sin(alpha) + L - m*g*np.cos(gamma)),
+    dx = casadi.vertcat(1/m*(T*casadi.cos(alpha) - D - m*g*casadi.sin(gamma)),
+                    1/(m*V)*(T*casadi.sin(alpha) + L - m*g*casadi.cos(gamma)),
                     M/Jy,
-                    q - 1/(m*V)*(T*np.sin(alpha) + L - m*g*np.cos(gamma)),
-                    V * np.sin(gamma))
+                    q - 1/(m*V)*(T*casadi.sin(alpha) + L - m*g*casadi.cos(gamma)),
+                    V * casadi.sin(gamma))
     return dx
 
 
@@ -138,8 +138,10 @@ def cost_origin_aggressive_casadi(x, u, h_r):
     Jy = config_opc.PARA_Jy
     g = config_opc.PARA_g
 
-    pa = np.array([-D/m - g*np.sin(alpha), L/m - g * np.cos(alpha), M/Jy])
-    pa_norm = np.linalg.norm(pa)
+    # pa = np.array([-D/m - g*casadi.sin(alpha), L/m - g * casadi.cos(alpha), M/Jy])
+    # pa_norm = np.linalg.norm(pa)
+    pa = casadi.vertcat(-D/m - g*casadi.sin(alpha), L/m - g * casadi.cos(alpha), M/Jy)
+    pa_norm = casadi.norm_2(pa)
     pa_norm_norm = pa_norm/config_opc.PARA_PA_NORM
 
     return casadi.vertcat(cost_tracking_error(h, h_r), pa_norm_norm)
