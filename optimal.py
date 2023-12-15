@@ -91,8 +91,8 @@ def interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j
                           np.abs(y_optimal[PARA_N_LGL_AGGRE-1, :] - y_optimal[PARA_N_LGL_AGGRE, :]), 
                           np.abs(z_optimal[PARA_N_LGL_AGGRE-1, :] - z_optimal[PARA_N_LGL_AGGRE, :]), 
                           np.abs(u_optimal[PARA_N_LGL_AGGRE-1, :] - u_optimal[PARA_N_LGL_AGGRE, :])), axis=-1))
-            # if res > 1e-8:
-            #     raise ValueError("optimal LGL results link error")
+            if res > 1e-8:
+                raise ValueError("optimal LGL results link error")
             x[k, :] = x_optimal[PARA_N_LGL_AGGRE, :]
             y[k, :] = y_optimal[PARA_N_LGL_AGGRE, :]
             z[k, :] = z_optimal[PARA_N_LGL_AGGRE, :]
@@ -206,7 +206,7 @@ def function_constraint(X, t_switch, h_ref_lgl, diff_mat, x0):
 #     for m in range(PARA_N_LGL_CRUISE):
 #         fz_matrix[m, :] = dyn.cost_tracking_error(h=np.reshape(X[PARA_INDEXES_VAR[1]:PARA_INDEXES_VAR[2]], (PARA_N_LGL_CRUISE, PARA_NX_AUXILIARY))[m, 4], h_r=h_ref_lgl[m+PARA_N_LGL_AGGRE])
 #     fz_matrix *= (PARA_TF-t_switch)/2
-#     eq_cons_array[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]] = np.reshape(diff_mat @ np.reshape(X[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]], (PARA_N_LGL_CRUISE, PARA_NZ_AUXILIARY)) + fz_matrix, PARA_N_LGL_CRUISE*PARA_NZ_AUXILIARY)
+#     eq_cons_5array[PARA_INDEXES_VAR[]:PARA_INDEXES_VAR[6]] = np.reshape(diff_mat @ np.reshape(X[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]], (PARA_N_LGL_CRUISE, PARA_NZ_AUXILIARY)) + fz_matrix, PARA_N_LGL_CRUISE*PARA_NZ_AUXILIARY)
 
 #     eq_cons_array[PARA_INDEXES_VAR[6]:] = np.concatenate((np.reshape(X[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[1]], (PARA_N_LGL_AGGRE, PARA_NX_AUXILIARY))[-1,:]-np.reshape(X[PARA_INDEXES_VAR[1]:PARA_INDEXES_VAR[2]], (PARA_N_LGL_CRUISE, PARA_NX_AUXILIARY))[0, :], np.reshape(X[PARA_INDEXES_VAR[2]:PARA_INDEXES_VAR[3]], (PARA_N_LGL_AGGRE, PARA_NY_AUXILIARY))[-1,:]-np.reshape(X[PARA_INDEXES_VAR[3]:PARA_INDEXES_VAR[4]], (PARA_N_LGL_CRUISE, PARA_NY_AUXILIARY))[0, :],
 #                                                             np.reshape(X[PARA_INDEXES_VAR[4]:PARA_INDEXES_VAR[5]], (PARA_N_LGL_AGGRE, PARA_NZ_AUXILIARY))[-1,:]-np.reshape(X[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]], (PARA_N_LGL_CRUISE, PARA_NZ_AUXILIARY))[0, :], np.reshape(X[PARA_INDEXES_VAR[6]:PARA_INDEXES_VAR[7]], (PARA_N_LGL_AGGRE, PARA_NU_AUXILIARY))[-1,:]-np.reshape(X[PARA_INDEXES_VAR[7]:PARA_INDEXES_VAR[8]], (PARA_N_LGL_CRUISE, PARA_NU_AUXILIARY))[0, :], np.reshape(X[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[1]], (PARA_N_LGL_AGGRE, PARA_NX_AUXILIARY))[0, :] - x0, np.reshape(X[PARA_INDEXES_VAR[2]:PARA_INDEXES_VAR[3]], (PARA_N_LGL_AGGRE, PARA_NY_AUXILIARY))[0, :], np.reshape(X[PARA_INDEXES_VAR[4]:PARA_INDEXES_VAR[5]], (PARA_N_LGL_AGGRE, PARA_NZ_AUXILIARY))[0, :]))
@@ -273,6 +273,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
 
     eq_cons_array = casadi.MX.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
                                    +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
+                                   +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
                                    )
 
     # x_aggre_matrix = casadi.reshape(X[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[1]], (PARA_N_LGL_AGGRE, PARA_NX_AUXILIARY))  # Saved as row vector
@@ -332,8 +333,13 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     fz_matrix *= (PARA_TF-t_switch)/2
     eq_cons_array[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]] = casadi.reshape(diff_mat @ z_cruise_matrix - fz_matrix, (PARA_N_LGL_CRUISE*PARA_NZ_AUXILIARY, 1))
 
-    eq_cons_array[PARA_INDEXES_VAR[6]:] = casadi.horzcat(x_aggre_matrix[-1,:]-x_cruise_matrix[0, :], y_aggre_matrix[-1,:]-y_cruise_matrix[0, :],
+    link_index = PARA_INDEXES_VAR[6]+(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
+    eq_cons_array[PARA_INDEXES_VAR[6]:link_index] = casadi.horzcat(x_aggre_matrix[-1,:]-x_cruise_matrix[0, :], y_aggre_matrix[-1,:]-y_cruise_matrix[0, :],
                                                             z_aggre_matrix[-1,:]-z_cruise_matrix[0, :], u_aggre_matrix[-1,:]-u_cruise_matrix[0, :])
+
+    eq_cons_array[link_index:link_index+PARA_NX_AUXILIARY] = x_aggre_matrix[0,:] - casadi.reshape(x0, (1, PARA_NX_AUXILIARY))
+    eq_cons_array[link_index+PARA_NX_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY] = y_aggre_matrix[0,:]
+    eq_cons_array[link_index+PARA_NX_AUXILIARY:] = z_aggre_matrix[0,:]
 
     return casadi.vertcat(eq_cons_array[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[2]], eq_cons_array[PARA_INDEXES_VAR[4]:])
     # return eq_cons_array
@@ -356,8 +362,8 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     #                                +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY))
     # ubg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
     #                                +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY))
-    lbg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY + PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
-    ubg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY + PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
+    lbg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY*2 + PARA_NY_AUXILIARY*2+PARA_NZ_AUXILIARY*2+PARA_NU_AUXILIARY)
+    ubg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY*2 + PARA_NY_AUXILIARY*2+PARA_NZ_AUXILIARY*2+PARA_NU_AUXILIARY)
 
     nlp = {'x':V, 'f':J, 'g':g}
     opts = {}
