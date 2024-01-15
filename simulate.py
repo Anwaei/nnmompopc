@@ -21,11 +21,18 @@ def generate_ref_trajectory_constant(constant_height=300):
 def generate_ref_trajectory_varying(constant_height=300, high_height=400, low_height=200, switch_time=0.5, type='triangle'):
     h_r_seq = np.ones(shape=config_opc.PARA_STEP_NUM) * constant_height
     switch_step = int(config_opc.PARA_STEP_NUM * switch_time)
+    time_steps = np.arange(config_opc.PARA_STEP_NUM) * config_opc.PARA_DT
     if type == 'triangle':
         one_phase_step = int(switch_step/4)
         h_r_seq[0:one_phase_step+1] = np.linspace(start=h_r_seq[0], stop=high_height, num=one_phase_step+1)
         h_r_seq[one_phase_step:one_phase_step*3+1] = np.linspace(start=high_height, stop=low_height, num=2*one_phase_step+1)
         h_r_seq[one_phase_step*3:one_phase_step*4+1] = np.linspace(start=low_height, stop=constant_height, num=one_phase_step+1)
+    elif type == 'sin':
+        if high_height - constant_height != constant_height - low_height:
+            raise("Sin ref trajectory should have same disatance between high/cons and cons/low.")
+        A = high_height - constant_height
+        w = 2*np.pi/(switch_step * config_opc.PARA_DT)
+        h_r_seq[0:switch_step] = A*np.sin(w*time_steps[0:switch_step]) + constant_height
     else:
         raise("Ref trajectory type error.")
     t_switch = config_opc.PARA_TF * switch_time
@@ -75,7 +82,7 @@ def simulate_origin(x0, trajectory_ref, control_method):
     
     return x_all, u_all, j_all
 
-def simulate_auxiliary(x0, trajectory_ref, control_method):
+def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
     nx = config_opc.PARA_NX_AUXILIARY
     nu = config_opc.PARA_NU_AUXILIARY
     nj = config_opc.PARA_NJ_AUXILIARY
@@ -117,6 +124,10 @@ def simulate_auxiliary(x0, trajectory_ref, control_method):
             err_diff = (err_cur - err_pre)/dt
             err_pre = err_cur
             u_all[k, :] = control_origin_PID(err_cur, err_int, err_diff)            
+        elif control_method == "given":
+            if given_input is None: 
+                raise("Given input missed.")
+            u_all[k, :] = given_input[k, :]
         else:
             u_all[k, :] = control_origin_constant()
     

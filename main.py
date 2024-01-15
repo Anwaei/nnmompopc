@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     tra_ref = simu.generate_ref_trajectory_constant(constant_height=300)
     switch_time = 0.5
-    tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time)
+    tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, type='triangle')
     x_all_ori, u_all_ori, j_all_ori = simu.simulate_origin(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="pid")
     # plt.plot(x_all_ori[:, 4])
     # plt.show()
@@ -29,23 +29,17 @@ if __name__ == '__main__':
     plt.plot(u_optimal)
     plt.savefig("pics\\u_optimal_"+cur_time+".png")
     plt.figure(3)
+    plt.plot(y_optimal)
+    plt.savefig("pics\\y_optimal_"+cur_time+".png")
+    plt.figure(4)
     plt.plot(z_optimal)
     plt.savefig("pics\\z_optimal_"+cur_time+".png")
     plt.show()
     t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"])
-    plt.figure(4)
-    plt.plot(t, x)
-    plt.legend(["V", "gamma", "q", "alpha", "h"])
-    plt.figure(5)
-    plt.plot(t, y)
-    plt.legend(["y1", "y2"])
-    plt.figure(6)
-    plt.plot(t, z)
-    plt.legend(["z"])
-    plt.figure(7)
-    plt.plot(t, u)
-    plt.legend(["delta_e", "delta_T", "xi"])
-    plt.show()
+    pu.plot_trajectory_interpolated(t, x, y, z, u, ref_trajectory=tra_ref)
+    
+    x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
+    pu.plot_trajectory_auxiliary(x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, tra_ref)
 
     pass
 

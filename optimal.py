@@ -7,6 +7,11 @@ import simulate as simu
 from config_opc import *
 import casadi
 
+DIM_CONS = PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) \
+           +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY) \
+           +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) 
+        #    +PARA_N_LGL_ALL*PARA_NU_AUXILIARY
+
 def calculate_LGL_points(N_LGL):
     L = legendre(N_LGL-1)
     Ld = np.poly1d([i * L[i] for i in range(N_LGL-1, 0, -1)])
@@ -271,19 +276,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     # h_ref_lgl = arg[1]
     # diff_mat = arg[2]
 
-    eq_cons_array = casadi.MX.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
-                                   +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
-                                   +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
-                                   )
-
-    # x_aggre_matrix = casadi.reshape(X[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[1]], (PARA_N_LGL_AGGRE, PARA_NX_AUXILIARY))  # Saved as row vector
-    # x_cruise_matrix = casadi.reshape(X[PARA_INDEXES_VAR[1]:PARA_INDEXES_VAR[2]], (PARA_N_LGL_CRUISE, PARA_NX_AUXILIARY))
-    # y_aggre_matrix = casadi.reshape(X[PARA_INDEXES_VAR[2]:PARA_INDEXES_VAR[3]], (PARA_N_LGL_AGGRE, PARA_NY_AUXILIARY))
-    # y_cruise_matrix = casadi.reshape(X[PARA_INDEXES_VAR[3]:PARA_INDEXES_VAR[4]], (PARA_N_LGL_CRUISE, PARA_NY_AUXILIARY))
-    # z_aggre_matrix = casadi.reshape(X[PARA_INDEXES_VAR[4]:PARA_INDEXES_VAR[5]], (PARA_N_LGL_AGGRE, PARA_NZ_AUXILIARY))
-    # z_cruise_matrix = casadi.reshape(X[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]], (PARA_N_LGL_CRUISE, PARA_NZ_AUXILIARY))
-    # u_aggre_matrix = casadi.reshape(X[PARA_INDEXES_VAR[6]:PARA_INDEXES_VAR[7]], (PARA_N_LGL_AGGRE, PARA_NU_AUXILIARY))
-    # u_cruise_matrix = casadi.reshape(X[PARA_INDEXES_VAR[7]:PARA_INDEXES_VAR[8]], (PARA_N_LGL_CRUISE, PARA_NU_AUXILIARY))
+    eq_cons_array = casadi.MX.zeros(DIM_CONS)
 
     x_aggre_matrix = casadi.transpose(casadi.reshape(X[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[1]], (PARA_NX_AUXILIARY, PARA_N_LGL_AGGRE)))  # Saved as row vector
     x_cruise_matrix = casadi.transpose(casadi.reshape(X[PARA_INDEXES_VAR[1]:PARA_INDEXES_VAR[2]], (PARA_NX_AUXILIARY, PARA_N_LGL_CRUISE)))
@@ -308,17 +301,17 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     eq_cons_array[PARA_INDEXES_VAR[1]:PARA_INDEXES_VAR[2]] = casadi.reshape(diff_mat @ x_cruise_matrix - fx_matrix, (PARA_N_LGL_CRUISE*PARA_NX_AUXILIARY, 1))
     
     # constraints for y
-    fy_matrix = casadi.MX.zeros(y_aggre_matrix.shape)
-    for m in range(PARA_N_LGL_AGGRE):
-        fy_matrix[m, :] = casadi.vertcat(dyn.cost_origin_aggressive_casadi(x_aggre_matrix[m, :], u_aggre_matrix[m, :], h_ref_lgl[m])[1], 0)
-    fy_matrix *= t_switch/2
-    eq_cons_array[PARA_INDEXES_VAR[2]:PARA_INDEXES_VAR[3]] = casadi.reshape(diff_mat @ y_aggre_matrix - fy_matrix, (PARA_N_LGL_AGGRE*PARA_NY_AUXILIARY, 1))
+    # fy_matrix = casadi.MX.zeros(y_aggre_matrix.shape)
+    # for m in range(PARA_N_LGL_AGGRE):
+    #     fy_matrix[m, :] = casadi.vertcat(dyn.cost_origin_aggressive_casadi(x_aggre_matrix[m, :], u_aggre_matrix[m, :], h_ref_lgl[m])[1], 0)
+    # fy_matrix *= t_switch/2
+    # eq_cons_array[PARA_INDEXES_VAR[2]:PARA_INDEXES_VAR[3]] = casadi.reshape(diff_mat @ y_aggre_matrix - fy_matrix, (PARA_N_LGL_AGGRE*PARA_NY_AUXILIARY, 1))
     
-    fy_matrix = casadi.MX.zeros(y_cruise_matrix.shape)
-    for m in range(PARA_N_LGL_CRUISE):
-        fy_matrix[m, :] = casadi.vertcat(0, dyn.cost_origin_cruise_casadi(x_cruise_matrix[m, :], u_cruise_matrix[m, :], h_ref_lgl[m+PARA_N_LGL_AGGRE])[1])
-    fy_matrix *= (PARA_TF-t_switch)/2   
-    eq_cons_array[PARA_INDEXES_VAR[3]:PARA_INDEXES_VAR[4]] = casadi.reshape(diff_mat @ y_cruise_matrix - fy_matrix, (PARA_N_LGL_CRUISE*PARA_NY_AUXILIARY, 1))
+    # fy_matrix = casadi.MX.zeros(y_cruise_matrix.shape)
+    # for m in range(PARA_N_LGL_CRUISE):
+    #     fy_matrix[m, :] = casadi.vertcat(0, dyn.cost_origin_cruise_casadi(x_cruise_matrix[m, :], u_cruise_matrix[m, :], h_ref_lgl[m+PARA_N_LGL_AGGRE])[1])
+    # fy_matrix *= (PARA_TF-t_switch)/2   
+    # eq_cons_array[PARA_INDEXES_VAR[3]:PARA_INDEXES_VAR[4]] = casadi.reshape(diff_mat @ y_cruise_matrix - fy_matrix, (PARA_N_LGL_CRUISE*PARA_NY_AUXILIARY, 1))
 
     # constraints for z
     fz_matrix = casadi.MX.zeros(z_aggre_matrix.shape)
@@ -333,20 +326,32 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     fz_matrix *= (PARA_TF-t_switch)/2
     eq_cons_array[PARA_INDEXES_VAR[5]:PARA_INDEXES_VAR[6]] = casadi.reshape(diff_mat @ z_cruise_matrix - fz_matrix, (PARA_N_LGL_CRUISE*PARA_NZ_AUXILIARY, 1))
 
+    # constraints for link
     link_index = PARA_INDEXES_VAR[6]+(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)
     eq_cons_array[PARA_INDEXES_VAR[6]:link_index] = casadi.horzcat(x_aggre_matrix[-1,:]-x_cruise_matrix[0, :], y_aggre_matrix[-1,:]-y_cruise_matrix[0, :],
                                                             z_aggre_matrix[-1,:]-z_cruise_matrix[0, :], u_aggre_matrix[-1,:]-u_cruise_matrix[0, :])
 
+    # constraints for start value
     eq_cons_array[link_index:link_index+PARA_NX_AUXILIARY] = x_aggre_matrix[0,:] - casadi.reshape(x0, (1, PARA_NX_AUXILIARY))
-    eq_cons_array[link_index+PARA_NX_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY] = y_aggre_matrix[0,:]
-    eq_cons_array[link_index+PARA_NX_AUXILIARY:] = z_aggre_matrix[0,:]
+    # eq_cons_array[link_index+PARA_NX_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY] = y_aggre_matrix[0,:]
+    # eq_cons_array[link_index+PARA_NX_AUXILIARY] = y_aggre_matrix[0,0]
+    # eq_cons_array[link_index+PARA_NX_AUXILIARY+1] = y_aggre_matrix[0,1]
+    eq_cons_array[link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY] = z_aggre_matrix[0,:]
+    start_index = link_index + PARA_NX_AUXILIARY + PARA_NY_AUXILIARY + PARA_NZ_AUXILIARY
 
-    return casadi.vertcat(eq_cons_array[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[2]], eq_cons_array[PARA_INDEXES_VAR[4]:])
+    # constraints for control input
+    # for m in range(PARA_N_LGL_AGGRE):
+    #     eq_cons_array[start_index + m*PARA_NU_AUXILIARY: start_index + (m+1)*PARA_NU_AUXILIARY] = u_aggre_matrix[m, :]
+    # start_index2 = start_index + PARA_N_LGL_AGGRE*PARA_NU_AUXILIARY
+    # for m in range(PARA_N_LGL_CRUISE):
+    #     eq_cons_array[start_index2 + m*PARA_NU_AUXILIARY: start_index2 + (m+1)*PARA_NU_AUXILIARY] = u_cruise_matrix[m, :]
+
+    # return casadi.vertcat(eq_cons_array[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[2]], eq_cons_array[PARA_INDEXES_VAR[4]:])
+    return eq_cons_array
     # return eq_cons_array
 
 
 def generate_PS_solution_casadi(x0, trajectory_ref):
-
     t_switch = trajectory_ref['t_switch']
     h_ref = trajectory_ref['h_r_seq']
     LGL_points = calculate_LGL_points(N_LGL=PARA_N_LGL_AGGRE)  # Assume same number
@@ -362,8 +367,11 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     #                                +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY))
     # ubg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
     #                                +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY))
-    lbg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY*2 + PARA_NY_AUXILIARY*2+PARA_NZ_AUXILIARY*2+PARA_NU_AUXILIARY)
-    ubg = np.zeros(PARA_N_LGL_ALL*(PARA_NX_AUXILIARY + PARA_NZ_AUXILIARY) + PARA_NX_AUXILIARY*2 + PARA_NY_AUXILIARY*2+PARA_NZ_AUXILIARY*2+PARA_NU_AUXILIARY)
+    dim_constraints = DIM_CONS
+    lbg = np.zeros(dim_constraints)
+    ubg = np.zeros(dim_constraints)
+    # lbg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_LOWER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
+    # ubg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_UPPER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
 
     nlp = {'x':V, 'f':J, 'g':g}
     opts = {}
