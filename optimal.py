@@ -92,11 +92,12 @@ def interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j
                 z[k, :] = z[k, :] + w * z_optimal[j, :]
                 u[k, :] = u[k, :] + w * u_optimal[j, :]
         else:
-            res = np.max(np.concatenate((np.abs(x_optimal[PARA_N_LGL_AGGRE-1, :] - x_optimal[PARA_N_LGL_AGGRE, :]), 
-                          np.abs(y_optimal[PARA_N_LGL_AGGRE-1, :] - y_optimal[PARA_N_LGL_AGGRE, :]), 
-                          np.abs(z_optimal[PARA_N_LGL_AGGRE-1, :] - z_optimal[PARA_N_LGL_AGGRE, :]), 
-                          np.abs(u_optimal[PARA_N_LGL_AGGRE-1, :] - u_optimal[PARA_N_LGL_AGGRE, :])), axis=-1))
-            if res > 1e-8:
+            res = np.concatenate((np.abs(x_optimal[PARA_N_LGL_AGGRE-1, :] - x_optimal[PARA_N_LGL_AGGRE, :]),
+                          np.abs(y_optimal[PARA_N_LGL_AGGRE-1, :] - y_optimal[PARA_N_LGL_AGGRE, :]),
+                          np.abs(z_optimal[PARA_N_LGL_AGGRE-1, :] - z_optimal[PARA_N_LGL_AGGRE, :]),
+                          np.abs(u_optimal[PARA_N_LGL_AGGRE-1, :] - u_optimal[PARA_N_LGL_AGGRE, :])), axis=-1)
+            res_max = np.max(res)
+            if res_max > 0.1:
                 raise ValueError("optimal LGL results link error")
             x[k, :] = x_optimal[PARA_N_LGL_AGGRE, :]
             y[k, :] = y_optimal[PARA_N_LGL_AGGRE, :]

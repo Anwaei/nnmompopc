@@ -13,8 +13,8 @@ if __name__ == '__main__':
 
     tra_ref = simu.generate_ref_trajectory_constant(constant_height=300)
     switch_time = 0.5
-    tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, type='triangle')
-    x_all_ori, u_all_ori, j_all_ori = simu.simulate_origin(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="pid")
+    tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time)
+    # x_all_ori, u_all_ori, j_all_ori = simu.simulate_origin(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="pid")
     # plt.plot(x_all_ori[:, 4])
     # plt.show()
     # pu.plot_trajectory_origin(x_all_ori, u_all_ori, j_all_ori, tra_ref)

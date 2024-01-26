@@ -12,6 +12,12 @@ def control_origin_PID(ep, ei, ed):
     uc = np.clip(u, 0, 1.5)
     return uc
 
+def control_origin_PID_increment(up, e, ep, epp):
+    dt = config_opc.PARA_DT
+    u = up + config_opc.PARA_KP*(e-ep) + config_opc.PARA_KI*e*dt + config_opc.PARA_KD*(e-2*ep+epp)/dt
+    uc = np.clip(u, 0, 1.5)
+    return uc
+
 def generate_ref_trajectory_constant(constant_height=300):
     h_r_seq = np.ones(shape=config_opc.PARA_STEP_NUM) * constant_height
     t_switch = 0.5
@@ -70,7 +76,7 @@ def simulate_origin(x0, trajectory_ref, control_method):
 
         if control_method == "pid":
             err_cur = h_r_seq[k] - x_all[k, 4]
-            err_int += err_cur
+            err_int += err_cur*dt
             err_diff = (err_cur - err_pre)/dt
             err_pre = err_cur
             u_all[k, :] = control_origin_PID(err_cur, err_int, err_diff)
@@ -112,18 +118,25 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
 
     # For pid
     err_int = 0
+    err_cur = h_r_seq[0] - x_all[0, 4]
     err_pre = 0
+    err_pre_pre = 0
 
     for k in range(1, step_all):
         x_all[k, :], y_all[k, :], z_all[k, :] = dyn.dynamic_auxiliary_one_step(x=x_all[k-1, :], y=y_all[k-1, :], z=z_all[k-1, :], 
         x_r=h_r_seq[k-1], u=u_all[k-1, :], t=k*dt, t_switch=t_switch)
 
+        if k % 100 == 0:
+            print(k)
+
         if control_method == "pid":
-            err_cur = h_r_seq[k] - x_all[k, 4]
-            err_int += err_cur
-            err_diff = (err_cur - err_pre)/dt
+            err_pre_pre = err_pre
             err_pre = err_cur
-            u_all[k, :] = control_origin_PID(err_cur, err_int, err_diff)            
+            err_cur = h_r_seq[k] - x_all[k, 4]
+            # err_int += err_cur*dt
+            # err_diff = (err_cur - err_pre)/dt
+            # u_all[k, :] = control_origin_PID(err_cur, err_int, err_diff)
+            u_all[k, :] = control_origin_PID_increment(u_all[k-1, :], err_cur, err_pre, err_pre_pre)
         elif control_method == "given":
             if given_input is None: 
                 raise("Given input missed.")
