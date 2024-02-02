@@ -8,15 +8,20 @@ def aerodynamic_derivative(xi, key):
 
 
 def aerodynamic_coefficient_lift(alpha, xi, delta_e):
-    return aerodynamic_derivative(xi, key='L0') + aerodynamic_derivative(xi, key='Lalpha') * alpha + config_opc.PARA_CLdeltae * delta_e
+    alpha_deg = alpha/np.pi*180
+    delta_e_deg = delta_e/np.pi*180
+    return aerodynamic_derivative(xi, key='L0') + aerodynamic_derivative(xi, key='Lalpha') * alpha_deg + config_opc.PARA_CLdeltae * delta_e_deg
 
 
 def aerodynamic_coefficient_drag(alpha, xi):
-    return aerodynamic_derivative(xi, key='D0') + aerodynamic_derivative(xi, key='Dalpha') * alpha + aerodynamic_derivative(xi, key='Dalpha2') * (alpha**2)
+    alpha_deg = alpha / np.pi * 180
+    return aerodynamic_derivative(xi, key='D0') + aerodynamic_derivative(xi, key='Dalpha') * alpha_deg + aerodynamic_derivative(xi, key='Dalpha2') * (alpha_deg**2)
 
 
 def aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e):
-    return aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha + config_opc.PARA_CMdeltae * delta_e
+    alpha_deg = alpha / np.pi * 180
+    delta_e_deg = delta_e / np.pi * 180
+    return aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
 
 
 def aerodynamic_forces(x, u):
@@ -46,9 +51,9 @@ def dynamic_function(x, u):
     # V, gamma, q, alpha, h = x
     # delta_e, delta_T, xi = u
     V = x[0]
-    gamma = x[1]
+    alpha = x[1]
     q = x[2]
-    alpha = x[3]
+    theta = x[3]
     h = x[4]
     delta_e = u[0]
     delta_T = u[1]
@@ -56,14 +61,15 @@ def dynamic_function(x, u):
 
     L, D, M, T = aerodynamic_forces(x, u)
     m = config_opc.PARA_m
-    Jy = config_opc.PARA_Jy
+    # Jy = config_opc.PARA_Jy
+    Jy = config_opc.PARA_J0+config_opc.PARA_J1*xi
     g = config_opc.PARA_g
 
-    dx = np.array([1 / m * (T * np.cos(alpha) - D - m * g * np.sin(gamma)),
-                   1 / (m * V) * (T * np.sin(alpha) + L - m * g * np.cos(gamma)),
+    dx = np.array([1 / m * (T * np.cos(alpha) - D - m * g * np.sin(theta-alpha)),
+                   q - 1 / (m * V) * (T * np.sin(alpha) + L) + g * np.cos(theta-alpha) / V,
                    M / Jy,
-                   q - 1 / (m * V) * (T * np.sin(alpha) + L - m * g * np.cos(gamma)),
-                   V * np.sin(gamma)])
+                   q,
+                   V * np.sin(theta-alpha)])
     return dx
 
 
@@ -101,11 +107,12 @@ def dynamic_function_casadi(x, u):
 
     L, D, M, T = aerodynamic_forces(x, u)
     m = config_opc.PARA_m
-    Jy = config_opc.PARA_Jy
+    # Jy = config_opc.PARA_Jy
+    Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi
     g = config_opc.PARA_g
 
     dx = casadi.vertcat(1 / m * (T * casadi.cos(alpha) - D - m * g * casadi.sin(theta-alpha)),
-                        q - 1 / (m * V) * (T * casadi.sin(alpha) + L) + g * casadi.cos(theta-alpha)),
+                        q - 1 / (m * V) * (T * casadi.sin(alpha) + L) + g * casadi.cos(theta-alpha) / V,
                         M / Jy,
                         q,
                         V * casadi.sin(theta-alpha))
@@ -125,11 +132,13 @@ def cost_tracking_error(h, h_r):
 
 
 def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
-    V, gamma, q, alpha, h = x
+    # V, gamma, q, alpha, h = x
+    V, alpha, q, theta, h = x
     delta_e, delta_T, xi = u
 
-    T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
-                (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
+    # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
+    #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
+    T = delta_T
     P = np.abs(T) * V
     P_norm = P / config_opc.PARA_PC_NORM
 
@@ -137,11 +146,12 @@ def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
 
 
 def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
-    V, gamma, q, alpha, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
-    T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
-                (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
+    # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
+    #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
+    T = delta_T
     P = casadi.fabs(T) * V
     P_norm = P / config_opc.PARA_PC_NORM
 
@@ -149,7 +159,7 @@ def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
 
 
 def cost_origin_aggressive(x, u, h_r):
-    V, gamma, q, alpha, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     L, D, M, _ = aerodynamic_forces(x, u)
@@ -166,7 +176,7 @@ def cost_origin_aggressive(x, u, h_r):
 
 
 def cost_origin_aggressive_casadi(x, u, h_r):
-    V, gamma, q, alpha, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     L, D, M, _ = aerodynamic_forces(x, u)

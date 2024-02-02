@@ -16,7 +16,7 @@ PARA_NZ_AUXILIARY = 1
 PARA_NJ_ORIGIN = 2
 PARA_NJ_AUXILIARY = 1
 # Parameters in the dynamics
-PARA_m = 10
+PARA_m = 11.4
 PARA_g = 9.8
 PARA_Jy = 3.34
 PARA_rho = 1.29
@@ -28,6 +28,8 @@ PARA_Kmotor = 80
 # Parameters in aerodynamic
 PARA_C0 = {'L0': 0.19, 'Lalpha': 0.143, 'D0': 0.052, 'Dalpha': 0.00065, 'Dalpha2': 0.000325, 'M0': 0.195, 'Malpha': -0.057}
 PARA_C1 = {'L0': -0.04, 'Lalpha': -0.032, 'D0': -0.0012, 'Dalpha': -0.000026, 'Dalpha2': -0.000013, 'M0': -0.065, 'Malpha': -0.143}
+PARA_J0 = 3.04
+PARA_J1 = 0.6
 PARA_CLdeltae = -0.02
 PARA_CMdeltae = 0.125
 # Parameters of epsilon constraints
@@ -55,21 +57,23 @@ PARA_ERROR_SCALE = 10000
 
 # Initial states
 # Order: V, gamma, q, alpha, h
-PARA_X0 = np.array([20, 0, 0, 3.359, 300])
+# PARA_X0 = np.array([20, 0, 0, 3.359, 300])
+# Order2: V, alpha, q, theta, h
+PARA_X0 = np.array([22, 3/180*np.pi, -2/180*np.pi, 3/180*np.pi, 300])
 # Order: delta_e, delta_T, xi
 PARA_U0 = np.array([0.0, 0.5, 0.5])
 # PARA_U0 = np.array([0.0, 0.0, 0.0])
 
 # Parameters of control
 # Order: delta_e, delta_T, xi
-PARA_U_UPPER_BOUND = np.array([1.0, 1.0, 1.0])
-PARA_U_LOWER_BOUND = np.array([0.0, 0.0, 0.0])
+PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 1.0])
+PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.0])
 # Constant control
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
 # PID control
 PARA_KP = np.array([0.0, 0.5, 0.000])
-PARA_KI = np.array([0.00, 1.2, 0.0])
-PARA_KD = np.array([0.000, 0.000, 0.0])
+PARA_KI = np.array([0.00, 0.05, 0.0])
+PARA_KD = np.array([0.000, 0, 0.0])
 PARA_KB = np.array([0.5, 0.5, 0.5])
 # PARA_KP = np.array([0.000, 0.000, 0.000])
 # PARA_KI = np.array([0.000, 0.000, 0.0])

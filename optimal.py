@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.special import legendre
 import simulate
-import dynamics as dyn
+import dynamics2 as dyn
 import simulate as simu
 from config_opc import *
 import casadi

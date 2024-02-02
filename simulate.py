@@ -1,5 +1,5 @@
 import numpy as np
-import dynamics as dyn
+import dynamics2 as dyn
 import config_opc
 import plot_utils as pu
 
@@ -9,13 +9,13 @@ def control_origin_constant():
 
 def control_origin_PID(ep, ei, ed):
     u = config_opc.PARA_KB + config_opc.PARA_KP * ep + config_opc.PARA_KI * ei + config_opc.PARA_KD * ed
-    uc = np.clip(u, 0, 1.5)
+    uc = np.clip(u, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)
     return uc
 
 def control_origin_PID_increment(up, e, ep, epp):
     dt = config_opc.PARA_DT
     u = up + config_opc.PARA_KP*(e-ep) + config_opc.PARA_KI*e*dt + config_opc.PARA_KD*(e-2*ep+epp)/dt
-    uc = np.clip(u, 0, 1.5)
+    uc = np.clip(u, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)
     return uc
 
 def generate_ref_trajectory_constant(constant_height=300):
