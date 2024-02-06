@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from scipy.special import legendre
 
 PARA_TF = 20
-PARA_DT = 0.0001
+PARA_DT = 0.001
 PARA_STEP_NUM = int(PARA_TF/PARA_DT)+1
 TIME_STEPS = np.arange(PARA_STEP_NUM) * PARA_DT
 X0 = np.array([0, 10*2*np.pi/(PARA_TF/2)])

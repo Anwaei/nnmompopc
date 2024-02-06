@@ -9,8 +9,8 @@ import casadi
 
 DIM_CONS = PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) \
            +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY) \
-           +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) 
-        #    +PARA_N_LGL_ALL*PARA_NU_AUXILIARY
+           +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) \
+           +PARA_N_LGL_ALL*PARA_NU_AUXILIARY
 
 def calculate_LGL_points(N_LGL):
     L = legendre(N_LGL-1)
@@ -220,7 +220,7 @@ def function_constraint(X, t_switch, h_ref_lgl, diff_mat, x0):
 #     return eq_cons_array
 
 def generate_initial_variables(x0, traject_ref, method="pid"):
-    x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux = simu.simulate_auxiliary(x0=x0, trajectory_ref=traject_ref, control_method=method)
+    x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, aero_info = simu.simulate_auxiliary(x0=x0, trajectory_ref=traject_ref, control_method=method)
     LGL_points = calculate_LGL_points(N_LGL=PARA_N_LGL_AGGRE)
     LGL_indexes = calculate_LGL_indexes(LGL_points=LGL_points, t_switch=traject_ref['t_switch'])
     X = zip_variable(x_all_aux[LGL_indexes, :], y_all_aux[LGL_indexes, :], z_all_aux[LGL_indexes, :], u_all_aux[LGL_indexes, :])
@@ -341,11 +341,11 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     start_index = link_index + PARA_NX_AUXILIARY + PARA_NY_AUXILIARY + PARA_NZ_AUXILIARY
 
     # constraints for control input
-    # for m in range(PARA_N_LGL_AGGRE):
-    #     eq_cons_array[start_index + m*PARA_NU_AUXILIARY: start_index + (m+1)*PARA_NU_AUXILIARY] = u_aggre_matrix[m, :]
-    # start_index2 = start_index + PARA_N_LGL_AGGRE*PARA_NU_AUXILIARY
-    # for m in range(PARA_N_LGL_CRUISE):
-    #     eq_cons_array[start_index2 + m*PARA_NU_AUXILIARY: start_index2 + (m+1)*PARA_NU_AUXILIARY] = u_cruise_matrix[m, :]
+    for m in range(PARA_N_LGL_AGGRE):
+        eq_cons_array[start_index + m*PARA_NU_AUXILIARY: start_index + (m+1)*PARA_NU_AUXILIARY] = u_aggre_matrix[m, :]
+    start_index2 = start_index + PARA_N_LGL_AGGRE*PARA_NU_AUXILIARY
+    for m in range(PARA_N_LGL_CRUISE):
+        eq_cons_array[start_index2 + m*PARA_NU_AUXILIARY: start_index2 + (m+1)*PARA_NU_AUXILIARY] = u_cruise_matrix[m, :]
 
     # return casadi.vertcat(eq_cons_array[PARA_INDEXES_VAR[0]:PARA_INDEXES_VAR[2]], eq_cons_array[PARA_INDEXES_VAR[4]:])
     return eq_cons_array
@@ -371,8 +371,8 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     dim_constraints = DIM_CONS
     lbg = np.zeros(dim_constraints)
     ubg = np.zeros(dim_constraints)
-    # lbg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_LOWER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
-    # ubg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_UPPER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
+    lbg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_LOWER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
+    ubg[-PARA_N_LGL_ALL*PARA_NU_AUXILIARY:] = np.concatenate([PARA_U_UPPER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
 
     nlp = {'x':V, 'f':J, 'g':g}
     opts = {}

@@ -2,7 +2,7 @@ import numpy as np
 
 # ----- Environment Configurations -----
 # Simulation time
-PARA_TF = 200
+PARA_TF = 100
 PARA_DT = 0.01
 PARA_STEP_NUM = int(PARA_TF/PARA_DT)+1
 # State and control dimensions
@@ -36,8 +36,8 @@ PARA_CMdeltae = 0.125
 PARA_EPI12 = 10
 PARA_EPI22 = 10
 # Parameters of PS method
-PARA_N_LGL_AGGRE = 15
-PARA_N_LGL_CRUISE = 15
+PARA_N_LGL_AGGRE = 20
+PARA_N_LGL_CRUISE = 20
 PARA_N_LGL_ALL = PARA_N_LGL_AGGRE + PARA_N_LGL_CRUISE
 PARA_DIMENSION_VAR = PARA_N_LGL_ALL * (PARA_NX_AUXILIARY + PARA_NY_AUXILIARY + PARA_NZ_AUXILIARY + PARA_NU_AUXILIARY)
 PARA_INDEXES_VAR = [0, 
@@ -59,7 +59,7 @@ PARA_ERROR_SCALE = 10000
 # Order: V, gamma, q, alpha, h
 # PARA_X0 = np.array([20, 0, 0, 3.359, 300])
 # Order2: V, alpha, q, theta, h
-PARA_X0 = np.array([22, 3/180*np.pi, -2/180*np.pi, 3/180*np.pi, 300])
+PARA_X0 = np.array([20, 3/180*np.pi, -2/180*np.pi, 3/180*np.pi, 300])
 # Order: delta_e, delta_T, xi
 PARA_U0 = np.array([0.0, 0.5, 0.5])
 # PARA_U0 = np.array([0.0, 0.0, 0.0])
@@ -71,9 +71,9 @@ PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.0])
 # Constant control
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
 # PID control
-PARA_KP = np.array([0.0, 0.5, 0.000])
-PARA_KI = np.array([0.00, 0.05, 0.0])
-PARA_KD = np.array([0.000, 0, 0.0])
+PARA_KP = np.array([0.0002, 0.15, 0.000])
+PARA_KI = np.array([0.00, 0.07, 0.0])
+PARA_KD = np.array([0.000, 0.0, 0.0])
 PARA_KB = np.array([0.5, 0.5, 0.5])
 # PARA_KP = np.array([0.000, 0.000, 0.000])
 # PARA_KI = np.array([0.000, 0.000, 0.0])

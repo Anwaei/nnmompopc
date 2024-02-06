@@ -21,8 +21,17 @@ def aerodynamic_coefficient_drag(alpha, xi):
 def aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e):
     alpha_deg = alpha / np.pi * 180
     delta_e_deg = delta_e / np.pi * 180
+    M = aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
     return aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
 
+def aerodynamic_derivatives(x, u):
+    alpha = x[1]
+    delta_e = u[0]
+    xi = u[2]
+    CL = aerodynamic_coefficient_lift(alpha, xi, delta_e)
+    CD = aerodynamic_coefficient_drag(alpha, xi)
+    CM = aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e)
+    return np.array((CL, CD, CM))
 
 def aerodynamic_forces(x, u):
     # V, gamma, q, alpha, h = x

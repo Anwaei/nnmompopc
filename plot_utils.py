@@ -23,24 +23,39 @@ def plot_trajectory_origin(x_all, u_all, j_all, ref_trajectory):
     plt.show()
 
 
-def plot_trajectory_auxiliary(x_all, y_all, z_all, u_all, j_f, ref_trajectory):
+def plot_trajectory_auxiliary(x_all, y_all, z_all, u_all, j_f, ref_trajectory, aero_info):
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
     plt.figure()
+    plt.title("[Simulate] Trajectories")
+    plt.subplot(2,2,1)
     plt.plot(time_steps, ref_trajectory['h_r_seq'])
     plt.plot(time_steps, x_all)
     plt.ylim([-200, 1000])
     # plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
     plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h'])
-    plt.figure()
+    plt.subplot(2,2,2)
     plt.plot(time_steps, u_all)
     plt.legend(['delta_e', 'delta_T', 'xi'])
-    plt.figure()
+    plt.subplot(2,2,3)
     plt.plot(time_steps, y_all)
     plt.legend(['y12', 'y22'])
-    plt.figure()
+    plt.subplot(2,2,4)
     plt.plot(time_steps, z_all)
     plt.legend('z')
     print('J final =' + str(j_f))
+
+    aero_forces_all, aero_deriv_all, angle_deg_all = aero_info
+    plt.figure()
+    plt.title("[Simulate] AeroInfo")
+    plt.subplot(3, 1, 1)
+    plt.plot(time_steps, aero_forces_all)
+    plt.legend(['L', 'D', 'M'])
+    plt.subplot(3, 1, 2)
+    plt.plot(time_steps, aero_deriv_all)
+    plt.legend(['CL', 'CD', 'CM'])
+    plt.subplot(3, 1, 3)
+    plt.plot(time_steps, angle_deg_all)
+    plt.legend(['alpha', 'q', 'theta'])
 
     plt.show()
 
@@ -49,44 +64,46 @@ def plot_trajectory_interpolated(t, x, y, z, u, ref_trajectory):
     cur_time = time.strftime("%Y%m%d-%H%M", time.localtime())
     if not os.path.exists("pics\\interpolated_"+cur_time):
          os.mkdir("pics\\interpolated_"+cur_time)
-    plt.figure()  # height
+    plt.figure()
+    plt.title("[Interpolated] Trajectories")
+    plt.subplot(3,4,1)  # height
     plt.plot(t, ref_trajectory['h_r_seq'])
     plt.plot(t, x[:, 4])
     plt.legend(['Reference Height', 'Actual Height'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\h_interpolated.png")
-    plt.figure() # velocity
+    plt.subplot(3,4,2) # velocity
     plt.plot(t, x[:, 0])
-    plt.legend(['Actual Height'])
+    plt.legend(['Actual Velocity'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\v_interpolated.png")
-    plt.figure() # gamma
+    plt.subplot(3,4,3) # gamma
     plt.plot(t, x[:, 1])
     plt.legend(['gamma'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\gamma_interpolated.png")
-    plt.figure() # q
+    plt.subplot(3,4,4) # q
     plt.plot(t, x[:, 2])
     plt.legend(['q'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\q_interpolated.png")
-    plt.figure() # alpha
+    plt.subplot(3,4,5) # alpha
     plt.plot(t, x[:, 3])
     plt.legend(['alpha'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\alpha_interpolated.png")
-    plt.figure() # y
+    plt.subplot(3,4,6) # y
     plt.plot(t, y)
     plt.legend(['y1', 'y2'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\y_interpolated.png")
-    plt.figure() # z
+    plt.subplot(3,4,7) # z
     plt.plot(t, z)
     plt.legend(['z'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\z_interpolated.png")
-    plt.figure() # u-delta-e
+    plt.subplot(3,4,8) # u-delta-e
     plt.plot(t, u[:, 0])
     plt.legend(['delta e'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\de_interpolated.png")
-    plt.figure() # u-delta-T
+    plt.subplot(3,4,9) # u-delta-T
     plt.plot(t, u[:, 1])
     plt.legend(['delta T'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\dT_interpolated.png")
-    plt.figure() # u-xi
+    plt.subplot(3,4,10) # u-xi
     plt.plot(t, u[:, 2])
     plt.legend(['xi'])
     plt.savefig("pics\\interpolated_"+cur_time+"\\xi_interpolated.png")

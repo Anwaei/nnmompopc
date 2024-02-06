@@ -24,7 +24,7 @@ def generate_ref_trajectory_constant(constant_height=300):
     trajectory_ref = {'h_r_seq': h_r_seq, 't_switch': t_switch}
     return trajectory_ref
 
-def generate_ref_trajectory_varying(constant_height=300, high_height=400, low_height=200, switch_time=0.5, type='triangle'):
+def generate_ref_trajectory_varying(constant_height=300, high_height=350, low_height=250, switch_time=0.5, type='triangle'):
     h_r_seq = np.ones(shape=config_opc.PARA_STEP_NUM) * constant_height
     switch_step = int(config_opc.PARA_STEP_NUM * switch_time)
     time_steps = np.arange(config_opc.PARA_STEP_NUM) * config_opc.PARA_DT
@@ -116,6 +116,16 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
     u_all[0, :] = u0
     j_f = 0
 
+    aero_forces_all = np.zeros((step_all, 3))  # L, D, M
+    L, D, M, T = dyn.aerodynamic_forces(x0, u0)
+    aero_forces_all[0, 0] = L
+    aero_forces_all[0, 1] = D
+    aero_forces_all[0, 2] = M
+    aero_deriv_all = np.zeros((step_all, 3))  # CL, CD, CM
+    aero_deriv_all[0, :] = dyn.aerodynamic_derivatives(x0, u0)
+    angle_deg_all = np.zeros((step_all, 3))  # alpha, q, theta
+    angle_deg_all[0, :] = x0[1:4] / np.pi * 180
+
     # For pid
     err_int = 0
     err_cur = h_r_seq[0] - x_all[0, 4]
@@ -126,7 +136,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
         x_all[k, :], y_all[k, :], z_all[k, :] = dyn.dynamic_auxiliary_one_step(x=x_all[k-1, :], y=y_all[k-1, :], z=z_all[k-1, :], 
         x_r=h_r_seq[k-1], u=u_all[k-1, :], t=k*dt, t_switch=t_switch)
 
-        if k % 100 == 0:
+        if k % 10000 == 0:
             print(k)
 
         if control_method == "pid":
@@ -143,7 +153,15 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
             u_all[k, :] = given_input[k, :]
         else:
             u_all[k, :] = control_origin_constant()
+
+        L, D, M, T = dyn.aerodynamic_forces(x_all[k, :], u_all[k, :])
+        aero_forces_all[k, 0] = L
+        aero_forces_all[k, 1] = D
+        aero_forces_all[k, 2] = M
+        angle_deg_all[k, :] = x_all[k, 1:4] / np.pi * 180
+        aero_deriv_all[k, :] = dyn.aerodynamic_derivatives(x_all[k, :], u_all[k, :])
+
     
     j_f = dyn.cost_auxiliary(y_f=y_all[-1, :], z_f=z_all[-1, :], t_switch=t_switch)
 
-    return x_all, y_all, z_all, u_all, j_f
+    return x_all, y_all, z_all, u_all, j_f, (aero_forces_all, aero_deriv_all, angle_deg_all)
