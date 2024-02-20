@@ -66,8 +66,8 @@ PARA_U0 = np.array([0.0, 0.5, 0.5])
 
 # Parameters of control
 # Order: delta_e, delta_T, xi
-PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 1.0])
-PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.0])
+PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 0.5])
+PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.5])
 # Constant control
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
 # PID control
