@@ -20,7 +20,7 @@ def control_origin_PID_increment(up, e, ep, epp):
 
 def generate_ref_trajectory_constant(constant_height=300):
     h_r_seq = np.ones(shape=config_opc.PARA_STEP_NUM) * constant_height
-    t_switch = 0.5
+    t_switch = config_opc.PARA_TF * 0.5
     trajectory_ref = {'h_r_seq': h_r_seq, 't_switch': t_switch}
     return trajectory_ref
 

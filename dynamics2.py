@@ -148,7 +148,7 @@ def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
     #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
     T = delta_T
-    P = np.abs(T) * V
+    P = np.abs(T*V)
     P_norm = P / config_opc.PARA_PC_NORM
 
     return np.array([cost_tracking_error(h, h_r), P_norm])
@@ -161,7 +161,7 @@ def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
     #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
     T = delta_T
-    P = casadi.fabs(T) * V
+    P = casadi.fabs(T*V)
     P_norm = P / config_opc.PARA_PC_NORM
 
     return casadi.vertcat(cost_tracking_error(h, h_r), P_norm)
@@ -215,7 +215,8 @@ def dynamic_auxiliary_one_step(x, y, z, x_r, u, t, t_switch):
     new_x = dynamic_origin_one_step(x, u)
     # y: [y_(1,2), y_(2,2)]
     y1, y2 = y
-    y1d = cost_origin_aggressive(x, u, x_r)[1] if t < t_switch else 0
+    # y1d = cost_origin_aggressive(x, u, x_r)[1] if t < t_switch else 0
+    y1d = cost_origin_cruise(x, u, x_r)[1] if t < t_switch else 0
     y2d = cost_origin_cruise(x, u, x_r)[1] if t >= t_switch else 0
     zd = -cost_tracking_error(x[-1], x_r)
     new_y = y + config_opc.PARA_DT * np.array([y1d, y2d])
@@ -228,8 +229,8 @@ def cost_auxiliary(y_f, z_f, t_switch):
     y22f = y_f[1]
     t1 = t_switch
     t2 = config_opc.PARA_TF - t_switch
-    g12 = y12f + t1 * config_opc.PARA_EPI12
-    g22 = y22f + t2 * config_opc.PARA_EPI22
+    g12 = y12f - t1 * config_opc.PARA_EPI12
+    g22 = y22f - t2 * config_opc.PARA_EPI22
     return np.max(np.array([-z_f[0], g12, g22]))
 
 

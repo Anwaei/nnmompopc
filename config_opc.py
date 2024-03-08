@@ -3,7 +3,7 @@ import numpy as np
 # ----- Environment Configurations -----
 # Simulation time
 PARA_TF = 100
-PARA_DT = 0.001
+PARA_DT = 0.01
 PARA_STEP_NUM = int(PARA_TF/PARA_DT)+1
 # State and control dimensions
 PARA_NX_ORIGIN = 5
@@ -33,11 +33,11 @@ PARA_J1 = 0.6
 PARA_CLdeltae = -0.02
 PARA_CMdeltae = 0.125
 # Parameters of epsilon constraints
-PARA_EPI12 = 10
-PARA_EPI22 = 10
+PARA_EPI12 = 0.6
+PARA_EPI22 = 0.6
 # Parameters of PS method
-PARA_N_LGL_AGGRE = 35
-PARA_N_LGL_CRUISE = 35
+PARA_N_LGL_AGGRE = 30
+PARA_N_LGL_CRUISE = 30
 PARA_N_LGL_ALL = PARA_N_LGL_AGGRE + PARA_N_LGL_CRUISE
 PARA_DIMENSION_VAR = PARA_N_LGL_ALL * (PARA_NX_AUXILIARY + PARA_NY_AUXILIARY + PARA_NZ_AUXILIARY + PARA_NU_AUXILIARY)
 PARA_INDEXES_VAR = [0, 
@@ -52,8 +52,8 @@ PARA_INDEXES_VAR = [0,
 
 # Cost normalization
 PARA_PA_NORM = 20
-PARA_PC_NORM = 3000
-PARA_ERROR_SCALE = 10000
+PARA_PC_NORM = 1000
+PARA_ERROR_SCALE = 1000
 
 # Initial states
 # Order: V, gamma, q, alpha, h
@@ -66,8 +66,8 @@ PARA_U0 = np.array([0.0, 0.5, 0.5])
 
 # Parameters of control
 # Order: delta_e, delta_T, xi
-PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 0.5])
-PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.5])
+PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 0.8])
+PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0.0, 0.2])
 # Constant control
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
 # PID control
