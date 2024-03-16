@@ -10,11 +10,13 @@ TIME_STEPS = np.arange(PARA_STEP_NUM) * PARA_DT
 X0 = np.array([0, 10*2*np.pi/(PARA_TF/2)])
 X0 = np.array([0, 0])
 U0 = np.array([0])
+Y0 = np.array([0])
 
 NX = 2
 NU = 1
 NJ = 1
 NZ = 1
+NY = 1
 
 PARA_KP = 2
 PARA_KI = 0
@@ -65,6 +67,7 @@ def simulate_origin(x0, trajectory_ref, control_method='pid', given_input=None):
     nu = NU
     nz = NZ
     nj = NJ
+    ny = NY
     h_r_seq = trajectory_ref
 
     dt = PARA_DT 
@@ -76,6 +79,7 @@ def simulate_origin(x0, trajectory_ref, control_method='pid', given_input=None):
     u_all = np.zeros((step_all, nu))
     z_all = np.zeros((step_all, nz))
     j_all = np.zeros((step_all, nj))
+    y_all = np.zeros((step_all, ny))+1
     f_all = np.zeros((step_all, 4))
 
     x_all[0, :] = x0
@@ -107,7 +111,7 @@ def simulate_origin(x0, trajectory_ref, control_method='pid', given_input=None):
         j_all[k, :] = cost_func(x=x_all[k, :], u=u_all[k, :], h_r=h_r_seq[k])
         z_all[k, :] = z_all[k-1] - cost_func(x=x_all[k, :], u=u_all[k, :], h_r=h_r_seq[k]) * PARA_DT
     
-    return x_all, z_all, u_all, j_all
+    return x_all, z_all, u_all, y_all, j_all
 
 def calculate_LGL_points(N_LGL):
     L = legendre(N_LGL-1)
@@ -155,11 +159,12 @@ def function_objective_casadi(X):
     return -X[N_LGL * (NX + NZ)-NZ]
 
 def function_constraint_casadi(X, h_r_seq, diff_mat):
-    dim_constraint = N_LGL*(NX+NZ) + NX + NZ
+    dim_constraint = N_LGL*(NX+NZ+NY) + NX + NZ
     eq_cons_array = casadi.MX.zeros(dim_constraint)
     x_matrix = casadi.transpose(casadi.reshape(X[0: N_LGL*NX], (NX, N_LGL)))  # row vector
     z_matrix = casadi.transpose(casadi.reshape(X[N_LGL*NX: N_LGL*(NX+NZ)], (NZ, N_LGL)))
     u_matrix = casadi.transpose(casadi.reshape(X[N_LGL*(NX+NZ): N_LGL*(NX+NZ+NU)], (NU, N_LGL)))
+    y_matrix = casadi.transpose(casadi.reshape(X[N_LGL*(NX+NZ+NU): N_LGL*(NX+NZ+NU+NY)], (NY, N_LGL)))
 
     # constraints for x
     fx_matrix = casadi.MX.zeros(x_matrix.shape)
@@ -176,42 +181,48 @@ def function_constraint_casadi(X, h_r_seq, diff_mat):
     fz_matrix *= PARA_TF/2
     eq_cons_array[N_LGL*NX: N_LGL*(NX+NZ)] = casadi.reshape(diff_mat@z_matrix - fz_matrix, (N_LGL*NZ, 1))
 
+    eq_cons_array[N_LGL*(NX+NZ)+1: N_LGL*(NX+NZ+NY)] = casadi.reshape(y_matrix[1:], (N_LGL*NY-1, 1))
+
     # constraints for start value
-    eq_cons_array[N_LGL*(NX+NZ): N_LGL*(NX+NZ)+NX] = x_matrix[0, :] - casadi.reshape(X0, (1, NX))
-    eq_cons_array[N_LGL*(NX+NZ)+NX: N_LGL*(NX+NZ)+NX+NZ] = z_matrix[0, :]
+    eq_cons_array[N_LGL*(NX+NZ+NY): N_LGL*(NX+NZ+NY)+NX] = x_matrix[0, :] - casadi.reshape(X0, (1, NX))
+    eq_cons_array[N_LGL*(NX+NZ+NY)+NX: N_LGL*(NX+NZ+NY)+NX+NZ] = z_matrix[0, :]
 
     return eq_cons_array
 
-def zip_variable(x_matrix, z_matrix, u_matrix):
-    X = np.zeros(N_LGL * (NX + NZ + NU))
+def zip_variable(x_matrix, z_matrix, u_matrix, y_matrix):
+    X = np.zeros(N_LGL * (NX + NZ + NU + NY))
     X[0: N_LGL*NX] = np.reshape(x_matrix, N_LGL*NX)
     X[N_LGL*NX: N_LGL*(NX+NZ)] = np.reshape(z_matrix, N_LGL*NZ)
     X[N_LGL*(NX+NZ):N_LGL*(NX+NZ+NU)] = np.reshape(u_matrix, N_LGL*NU)
+    X[N_LGL*(NX+NZ+NU):N_LGL*(NX+NZ+NU+NY)] = np.reshape(y_matrix, N_LGL*NY)
     return X
 
-def interpolate_optimal_trajectory(x_optimal, z_optimal, u_optimal):
+def interpolate_optimal_trajectory(x_optimal, z_optimal, u_optimal, y_optimal):
     LGL_points = calculate_LGL_points(N_LGL)
     t = TIME_STEPS
     x = np.zeros((PARA_STEP_NUM, NX))
     z = np.zeros((PARA_STEP_NUM, NZ))
     u = np.zeros((PARA_STEP_NUM, NU))
+    y = np.zeros((PARA_STEP_NUM, NY))
     for k in range(PARA_STEP_NUM):
         tau = 2/PARA_TF*t[k] - 1
         for j in range(N_LGL):
             w = calculate_LGL_weights(LGL_points, tau=tau, j=j)
             x[k, :] = x[k, :] + w * x_optimal[j, :]
             z[k, :] = z[k, :] + w * z_optimal[j, :]
-            u[k, :] = u[k, :] + w * u_optimal[j, :]        
-    return x, z, u
+            u[k, :] = u[k, :] + w * u_optimal[j, :]
+            y[k, :] = y[k, :] + w * y_optimal[j, :]
+    return x, z, u, y
 
 def unzip_variable(X):
     x_matrix = np.reshape(X[0: N_LGL*NX], (N_LGL, NX))  # Saved as row vector
     z_matrix = np.reshape(X[N_LGL*NX: N_LGL*(NX+NZ)], (N_LGL, NZ))
     u_matrix = np.reshape(X[N_LGL*(NX+NZ):N_LGL*(NX+NZ+NU)], (N_LGL, NU))
-    return x_matrix, z_matrix, u_matrix
+    y_matrix = np.reshape(X[N_LGL*(NX+NZ+NU):N_LGL*(NX+NZ+NU+NY)], (N_LGL, NY))
+    return x_matrix, z_matrix, u_matrix, y_matrix
 
 
-def plot_trajectory(x_all, z_all, u_all, j_all, trajectory_ref):
+def plot_trajectory(x_all, z_all, u_all, y_all, j_all, trajectory_ref):
     plt.figure()
     plt.subplot(231)
     plt.plot(TIME_STEPS, x_all[:, 0])
@@ -226,25 +237,28 @@ def plot_trajectory(x_all, z_all, u_all, j_all, trajectory_ref):
     plt.subplot(234)
     plt.plot(TIME_STEPS, z_all[:, 0])
     plt.legend(["Z"])
-    plt.subplot(235)
+    plt.subplot(236)
+    plt.plot(TIME_STEPS, y_all[:, 0])
+    plt.legend(["Y"])
+    plt.subplot(236)
     plt.plot(TIME_STEPS, j_all)
     plt.legend(["Cost"])
     plt.show()
 
 def plot_optimal_trajectory(v_opt, trajectory_ref, v_init):
     _, LGL_time = calculate_LGL_indexes(calculate_LGL_points(N_LGL))
-    x_optimal, z_optimal, u_optimal = unzip_variable(v_opt)
+    x_optimal, z_optimal, u_optimal, y_optimal = unzip_variable(v_opt)
     j_optimal = np.array(res["f"])
-    x_all, z_all, u_all = interpolate_optimal_trajectory(x_optimal, z_optimal, u_optimal)
+    x_all, z_all, u_all, y_all = interpolate_optimal_trajectory(x_optimal, z_optimal, u_optimal, y_optimal)
     j_all = np.zeros(PARA_STEP_NUM)
     for k in range(PARA_STEP_NUM):
         j_all[k] = cost_func(x=x_all[k, :], u=u_all[k, :], h_r=trajectory_ref[k])
 
     print(f"Final cost: {j_optimal}")
 
-    x_init, z_init, u_init, j_init = v_init
+    x_init, z_init, u_init, y_init, j_init = v_init
 
-    x_after, z_after, u_after, j_after = simulate_origin(X0, trajectory_ref, control_method='given', given_input=u_all)
+    x_after, z_after, u_after, y_after, j_after = simulate_origin(X0, trajectory_ref, control_method='given', given_input=u_all)
 
     plt.figure()
     plt.subplot(231)
@@ -273,6 +287,12 @@ def plot_optimal_trajectory(v_opt, trajectory_ref, v_init):
     plt.scatter(LGL_time, z_optimal[:, 0], color='darkorange')
     plt.legend(["Initial z", "Optimized z", "Controlled z", "LGL points"])
     plt.subplot(235)
+    plt.plot(TIME_STEPS, y_init[:, 0])
+    plt.plot(TIME_STEPS, y_all[:, 0], color='darkorange')
+    plt.plot(TIME_STEPS, y_after[:, 0], color='darkviolet')
+    plt.scatter(LGL_time, y_optimal[:, 0], color='darkorange')
+    plt.legend(["Initial y", "Optimized y", "Controlled y", "LGL points"])
+    plt.subplot(236)
     plt.plot(TIME_STEPS, j_init)
     plt.plot(TIME_STEPS, j_all, color='darkorange')
     plt.plot(TIME_STEPS, j_after, color='darkviolet')
@@ -281,21 +301,21 @@ def plot_optimal_trajectory(v_opt, trajectory_ref, v_init):
 
 if __name__ == "__main__":
     h_r = generate_ref()
-    x_init, z_init, u_init, j_init = simulate_origin(x0=X0, trajectory_ref=h_r)
+    x_init, z_init, u_init, y_init, j_init = simulate_origin(x0=X0, trajectory_ref=h_r)
     # plot_trajectory(x_init, z_init, u_init, j_init, h_r)
     LGL_points = calculate_LGL_points(N_LGL)
     diff_mat = calculate_differential_matrix(N_LGL)
     LGL_indexes, _ = calculate_LGL_indexes(LGL_points=LGL_points)
     h_r_lgl = h_r[LGL_indexes]
-    Xinitial = zip_variable(x_init[LGL_indexes, :], z_init[LGL_indexes, :], u_init[LGL_indexes, :])
+    Xinitial = zip_variable(x_init[LGL_indexes, :], z_init[LGL_indexes, :], u_init[LGL_indexes, :], y_init[LGL_indexes, :])
 
     # plt.scatter(LGL_points, np.zeros(N_LGL))
     plt.show()
-    dim_variable = N_LGL * (NX + NZ + NU)
+    dim_variable = N_LGL * (NX + NZ + NU + NY)
     V = casadi.MX.sym("V", dim_variable)
     J = function_objective_casadi(X=V)
     g = function_constraint_casadi(X=V, h_r_seq=h_r_lgl, diff_mat=diff_mat)
-    dim_constraint = N_LGL*(NX+NZ) + NX + NZ
+    dim_constraint = N_LGL*(NX+NZ+NY) + NX + NZ
     lbg = np.zeros(dim_constraint)
     ubg = np.zeros(dim_constraint)
 
@@ -308,7 +328,7 @@ if __name__ == "__main__":
     res = solver(x0=Xinitial, lbg=lbg, ubg=ubg)
     print("optimal cost: ", float(res["f"]))
     v_opt = np.array(res["x"])
-    x_optimal, z_optimal, u_optimal = unzip_variable(v_opt)
+    x_optimal, z_optimal, y_optimal, u_optimal = unzip_variable(v_opt)
     j_optimal = np.array(res["f"])
-    plot_optimal_trajectory(v_opt, h_r, [x_init, z_init, u_init, j_init])
+    plot_optimal_trajectory(v_opt, h_r, [x_init, z_init, u_init, y_init, j_init])
 

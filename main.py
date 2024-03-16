@@ -12,8 +12,8 @@ if __name__ == '__main__':
     cur_time = time.strftime("%Y%m%d-%H%M", time.localtime())
 
     tra_ref = simu.generate_ref_trajectory_constant(constant_height=300)
-    # switch_time = 0.5
-    # tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, high_height=350, low_height=250)
+    switch_time = 0.5
+    tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, high_height=350, low_height=250)
     # x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="pid")
     # pu.plot_trajectory_auxiliary(x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, tra_ref, aero_info)
     # x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
