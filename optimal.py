@@ -224,8 +224,8 @@ def generate_PS_solution(x0, trajectory_ref):
 
 def function_objective_casadi(X, t_switch):
     y_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY)-PARA_NY_AUXILIARY : PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY)]
-    # z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-PARA_NZ_AUXILIARY : PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)]
-    z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
+    z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-PARA_NZ_AUXILIARY : PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)]
+    # z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
     # gy = y_last - casadi.MX([PARA_EPI12 * t_switch, PARA_EPI22 * (PARA_TF - t_switch)])
     # max_gy = casadi.mmax(gy)
     # cost = casadi.fmax(max_gy, -z_last[0])
@@ -322,7 +322,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
 
     # constraints for start value
     eq_cons_array[link_index:link_index+PARA_NX_AUXILIARY] = x_aggre_matrix[0,:] - casadi.reshape(x0, (1, PARA_NX_AUXILIARY))
-    eq_cons_array[link_index+PARA_NX_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY] = y_aggre_matrix[0, :]
+    # eq_cons_array[link_index+PARA_NX_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY] = y_aggre_matrix[0, :]
     # eq_cons_array[link_index+PARA_NX_AUXILIARY] = y_aggre_matrix[0,0]
     # eq_cons_array[link_index+PARA_NX_AUXILIARY+1] = y_cruise_matrix[0,1]
     eq_cons_array[link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY:link_index+PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY] = z_aggre_matrix[0,:]

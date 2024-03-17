@@ -2,7 +2,7 @@ import numpy as np
 
 # ----- Environment Configurations -----
 # Simulation time
-PARA_TF = 200
+PARA_TF = 100
 PARA_DT = 0.01
 PARA_STEP_NUM = int(PARA_TF/PARA_DT)+1
 # State and control dimensions
@@ -36,8 +36,8 @@ PARA_CMdeltae = 0.125
 PARA_EPI12 = 0.6
 PARA_EPI22 = 0.6
 # Parameters of PS method
-PARA_N_LGL_AGGRE = 35
-PARA_N_LGL_CRUISE = 35
+PARA_N_LGL_AGGRE = 30
+PARA_N_LGL_CRUISE = 30
 PARA_N_LGL_ALL = PARA_N_LGL_AGGRE + PARA_N_LGL_CRUISE
 PARA_DIMENSION_VAR = PARA_N_LGL_ALL * (PARA_NX_AUXILIARY + PARA_NY_AUXILIARY + PARA_NZ_AUXILIARY + PARA_NU_AUXILIARY)
 PARA_INDEXES_VAR = [0, 
@@ -53,7 +53,7 @@ PARA_INDEXES_VAR = [0,
 # Cost normalization
 PARA_PA_NORM = 20
 PARA_PC_NORM = 1000
-PARA_ERROR_SCALE = 1000
+PARA_ERROR_SCALE = 10000
 
 # Initial states
 # Order: V, gamma, q, alpha, h
