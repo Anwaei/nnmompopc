@@ -24,14 +24,14 @@ def plot_trajectory_origin(x_all, u_all, j_all, ref_trajectory):
     plt.show()
 
 
-def plot_trajectory_auxiliary(x_all, y_all, z_all, u_all, j_f, ref_trajectory, aero_info):
+def plot_trajectory_auxiliary(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_trajectory, aero_info):
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
     plt.figure()
     plt.title("[Simulate] Trajectories")
     plt.subplot(2,2,1)
     plt.plot(time_steps, ref_trajectory['h_r_seq'])
     plt.plot(time_steps, x_all)
-    plt.ylim([-200, 1000])
+    plt.ylim([-100, 500])
     # plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
     plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h'])
     plt.subplot(2,2,2)
@@ -44,6 +44,7 @@ def plot_trajectory_auxiliary(x_all, y_all, z_all, u_all, j_f, ref_trajectory, a
     plt.plot(time_steps, z_all)
     plt.legend('z')
     print('J final =' + str(j_f))
+    plt.savefig(pic_folder + "\\trajectory.png")
 
     aero_forces_all, aero_deriv_all, angle_deg_all = aero_info
     plt.figure()
@@ -58,13 +59,12 @@ def plot_trajectory_auxiliary(x_all, y_all, z_all, u_all, j_f, ref_trajectory, a
     plt.plot(time_steps, angle_deg_all)
     plt.legend(['alpha', 'q', 'theta'])
 
+    plt.savefig(pic_folder + "\\aeroinfo.png")
+
     plt.show()
 
 
-def plot_trajectory_interpolated(t, x, y, z, u, x_point, y_point, z_point, u_point, ref_trajectory):
-    cur_time = time.strftime("%Y%m%d-%H%M", time.localtime())
-    if not os.path.exists("pics\\interpolated_"+cur_time):
-         os.mkdir("pics\\interpolated_"+cur_time)
+def plot_trajectory_interpolated(pic_folder, t, x, y, z, u, x_point, y_point, z_point, u_point, ref_trajectory):
     t_switch = ref_trajectory['t_switch']
     LGL_points = opt.calculate_LGL_points(config_opc.PARA_N_LGL_AGGRE)
     LGL_indexex, LGL_time = opt.calculate_LGL_indexes(LGL_points, t_switch)
@@ -123,5 +123,17 @@ def plot_trajectory_interpolated(t, x, y, z, u, x_point, y_point, z_point, u_poi
     plt.scatter(LGL_time, u_point[:, 2], s=scatter_size)
     plt.legend(['xi', 'LGL_xi'])
     # plt.savefig("pics\\interpolated_"+cur_time+"\\xi_interpolated.png")
-    plt.savefig("pics\\interpolated_" + cur_time + "\\interpolated.png")
+    plt.savefig(pic_folder + "\\interpolated.png")
 
+def plot_optimal_points(pic_folder, x_optimal, y_optimal, z_optimal, u_optimal):
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(x_optimal)
+    plt.subplot(2,2,2)
+    plt.plot(u_optimal)
+    plt.subplot(2,2,3)
+    plt.plot(y_optimal)
+    plt.subplot(2,2,4)
+    plt.plot(z_optimal)
+    plt.savefig(pic_folder + "\\optimal_points.png")
+    plt.show()

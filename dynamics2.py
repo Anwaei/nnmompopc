@@ -148,7 +148,7 @@ def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
     #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
     T = delta_T
-    P = np.abs(T*V)
+    P = T*V
     P_norm = P / config_opc.PARA_PC_NORM
 
     return np.array([cost_tracking_error(h, h_r), P_norm])
@@ -161,7 +161,7 @@ def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
     #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
     T = delta_T
-    P = casadi.fabs(T*V)
+    P = T*V
     P_norm = P / config_opc.PARA_PC_NORM
 
     return casadi.vertcat(cost_tracking_error(h, h_r), P_norm)

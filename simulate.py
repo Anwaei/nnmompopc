@@ -29,10 +29,10 @@ def generate_ref_trajectory_varying(constant_height=300, high_height=350, low_he
     switch_step = int(config_opc.PARA_STEP_NUM * switch_time)
     time_steps = np.arange(config_opc.PARA_STEP_NUM) * config_opc.PARA_DT
     if type == 'triangle':
-        one_phase_step = int(switch_step/4)
-        h_r_seq[0:one_phase_step+1] = np.linspace(start=h_r_seq[0], stop=high_height, num=one_phase_step+1)
-        h_r_seq[one_phase_step:one_phase_step*3+1] = np.linspace(start=high_height, stop=low_height, num=2*one_phase_step+1)
-        h_r_seq[one_phase_step*3:one_phase_step*4+1] = np.linspace(start=low_height, stop=constant_height, num=one_phase_step+1)
+        one_phase_step = int((config_opc.PARA_STEP_NUM-switch_step)/4)
+        h_r_seq[switch_step+0:switch_step+one_phase_step+1] = np.linspace(start=h_r_seq[0], stop=high_height, num=one_phase_step+1)
+        h_r_seq[switch_step+one_phase_step:switch_step+one_phase_step*3+1] = np.linspace(start=high_height, stop=low_height, num=2*one_phase_step+1)
+        h_r_seq[switch_step+one_phase_step*3:switch_step+one_phase_step*4+1] = np.linspace(start=low_height, stop=constant_height, num=one_phase_step+1)
     elif type == 'sin':
         if high_height - constant_height != constant_height - low_height:
             raise("Sin ref trajectory should have same disatance between high/cons and cons/low.")
