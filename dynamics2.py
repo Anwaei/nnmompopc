@@ -217,7 +217,7 @@ def dynamic_auxiliary_one_step(x, y, z, x_r, u, t, t_switch):
     y1, y2 = y
     # y1d = cost_origin_aggressive(x, u, x_r)[1] if t < t_switch else 0
     y1d = cost_origin_cruise(x, u, x_r)[1] if t < t_switch else 0
-    y2d = cost_origin_cruise(x, u, x_r)[1] if t >= t_switch else 0
+    y2d = cost_origin_aggressive(x, u, x_r)[1] if t >= t_switch else 0
     zd = -cost_tracking_error(x[-1], x_r)
     new_y = y + config_opc.PARA_DT * np.array([y1d, y2d])
     new_z = z + config_opc.PARA_DT * zd

@@ -257,8 +257,8 @@ def function_objective_casadi(X, t_switch):
     y_last_cruise = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY)-1]
     # z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-PARA_NZ_AUXILIARY : PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)]
     z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
-    y_last = casadi.vertcat(y_last_aggre, y_last_cruise)
-    gy = y_last - casadi.MX([PARA_EPI12 * t_switch, PARA_EPI22 * (PARA_TF - t_switch)])
+    y_last = casadi.vertcat(y_last_aggre, -y_last_cruise)
+    gy = y_last - casadi.MX([PARA_EPI12 * t_switch, -PARA_EPI22 * (PARA_TF - t_switch)])
     max_gy = casadi.mmax(gy)
     cost = casadi.fmax(max_gy, -z_last[0])
     # return -z_last[0]
@@ -324,10 +324,15 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
 
     fy_matrix_2 = casadi.MX.zeros((PARA_N_LGL_CRUISE, 1))
     for m in range(PARA_N_LGL_CRUISE):
-        fy_matrix_2[m] = x_cruise_matrix[m, 0] * u_cruise_matrix[m, 1] / PARA_PC_NORM
+        L, D, M, _ = dyn.aerodynamic_forces(x_cruise_matrix[m, :], u_cruise_matrix[m, :])
+        pa = casadi.vertcat(-D / PARA_m - PARA_g * casadi.sin(x_cruise_matrix[m, 1]), L / PARA_m - PARA_g * casadi.cos(x_cruise_matrix[m, 1]), M / PARA_Jy)
+        pa_norm = casadi.norm_2(pa)
+        pa_norm_norm = pa_norm / PARA_PA_NORM
+        fy_matrix_2[m] = pa_norm_norm
+        # fy_matrix_2[m] = x_cruise_matrix[m, 0] * u_cruise_matrix[m, 1] / PARA_PC_NORM
     fy_matrix_2 *= t_switch/2
     eq_cons_array[PARA_INDEXES_VAR[3]:PARA_INDEXES_VAR[3]+PARA_N_LGL_AGGRE] = diff_mat @ y_cruise_matrix[:, 1] - fy_matrix_2
-    eq_cons_array[PARA_INDEXES_VAR[3]+PARA_N_LGL_AGGRE:PARA_INDEXES_VAR[4]] = y_cruise_matrix[:, 0] - y_aggre_matrix[-1, 0]
+    # eq_cons_array[PARA_INDEXES_VAR[3]+PARA_N_LGL_AGGRE:PARA_INDEXES_VAR[4]] = y_cruise_matrix[:, 0] - y_aggre_matrix[-1, 0]
 
 
     # constraints for z

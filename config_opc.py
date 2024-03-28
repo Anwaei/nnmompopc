@@ -33,8 +33,8 @@ PARA_J1 = 0.6
 PARA_CLdeltae = -0.02
 PARA_CMdeltae = 0.125
 # Parameters of epsilon constraints
-PARA_EPI12 = 0.5
-PARA_EPI22 = 0.5
+PARA_EPI12 = 0.6
+PARA_EPI22 = 0.3
 # Parameters of PS method
 PARA_N_LGL_AGGRE =  35
 PARA_N_LGL_CRUISE = 35
@@ -51,9 +51,9 @@ PARA_INDEXES_VAR = [0,
     PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY)]
 
 # Cost normalization
-PARA_PA_NORM = 20
+PARA_PA_NORM = 10
 PARA_PC_NORM = 1000
-PARA_ERROR_SCALE = 100000
+PARA_ERROR_SCALE = 1000000
 
 # Initial states
 # Order: V, gamma, q, alpha, h
