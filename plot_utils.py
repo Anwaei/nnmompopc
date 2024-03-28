@@ -43,8 +43,12 @@ def plot_trajectory_auxiliary(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_t
     plt.subplot(2,2,4)
     plt.plot(time_steps, z_all)
     plt.legend('z')
-    print('J final =' + str(j_f))
+    # print('J final =' + str(j_f))
     plt.savefig(pic_folder + "\\trajectory.png")
+
+    print(f"Final tracking error: {j_f[0]}")
+    print(f"Final cruise cost: {j_f[1]}")
+    print(f"Final aggressive cost: {j_f[2]}")
 
     aero_forces_all, aero_deriv_all, angle_deg_all = aero_info
     plt.figure()

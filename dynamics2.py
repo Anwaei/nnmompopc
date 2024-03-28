@@ -230,7 +230,16 @@ def cost_auxiliary(y_f, z_f, t_switch):
     t1 = t_switch
     t2 = config_opc.PARA_TF - t_switch
     g12 = y12f - t1 * config_opc.PARA_EPI12
-    g22 = y22f - t2 * config_opc.PARA_EPI22
+    g22 = -y22f + t2 * config_opc.PARA_EPI22
     return np.max(np.array([-z_f[0], g12, g22]))
+
+def cost_auxiliary_all(y_f, z_f, t_switch):
+    y12f = y_f[0]
+    y22f = y_f[1]
+    t1 = t_switch
+    t2 = config_opc.PARA_TF - t_switch
+    g12 = y12f - t1 * config_opc.PARA_EPI12
+    g22 = -y22f + t2 * config_opc.PARA_EPI22
+    return np.array([-z_f[0], g12, g22])
 
 
