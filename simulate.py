@@ -1,7 +1,10 @@
 import numpy as np
+import torch
+from torch import nn
 import dynamics2 as dyn
 import config_opc
 import plot_utils as pu
+from modules import OptimalModule
 
 def control_origin_constant():
     u_constant = np.array([0.1, 0.8, 0.5])
@@ -88,7 +91,8 @@ def simulate_origin(x0, trajectory_ref, control_method):
     
     return x_all, u_all, j_all
 
-def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
+def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net_path=None):
+    print("Simulation start. Control method: " + control_method)    
     nx = config_opc.PARA_NX_AUXILIARY
     nu = config_opc.PARA_NU_AUXILIARY
     nj = config_opc.PARA_NJ_AUXILIARY
@@ -126,6 +130,14 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
     angle_deg_all = np.zeros((step_all, 3))  # alpha, q, theta
     angle_deg_all[0, :] = x0[1:4] / np.pi * 180
 
+    # For net
+    net_input_ref = h_r_seq
+    net = None
+    if control_method == "nn":
+        net = OptimalModule()
+        net.load_state_dict(torch.load(net_path))
+        net.eval()
+
     # For pid
     err_int = 0
     err_cur = h_r_seq[0] - x_all[0, 4]
@@ -139,7 +151,13 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None):
         if k % 10000 == 0:
             print(k)
 
-        if control_method == "pid":
+        if control_method == "nn":
+            net_input_state = np.concatenate((x_all[k, :], y_all[k, :], z_all[k, :], h_r_seq[k][np.newaxis]), axis=0)
+            net_input = np.concatenate((net_input_state, net_input_ref)).astype(np.float32)
+            net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
+            u_predict = net(net_input)
+            u_all[k, :] = u_predict.detach().numpy().astype(np.float64)
+        elif control_method == "pid":
             err_pre_pre = err_pre
             err_pre = err_cur
             err_cur = h_r_seq[k] - x_all[k, 4]
