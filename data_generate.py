@@ -15,6 +15,20 @@ class OptimalDataset(Dataset):
         self.z_all = z_all_simu
         self.u_all = u_all_simu
         self.h_r = tra_ref["h_r_seq"]
+
+        # Normalization
+        self.x_mean = np.mean(x_all_simu, axis=0)
+        self.x_std = np.std(x_all_simu, axis=0)
+        self.x_all = (x_all_simu-self.x_mean)/self.x_std
+        self.y_mean = np.mean(y_all_simu, axis=0)
+        self.y_std = np.std(y_all_simu, axis=0)
+        self.y_all = (y_all_simu-self.y_mean)/self.y_std
+        self.z_mean = np.mean(z_all_simu, axis=0)
+        self.z_std = np.std(z_all_simu, axis=0)
+        self.z_all = (z_all_simu-self.z_mean)/self.z_std
+        self.u_mean = np.mean(u_all_simu, axis=0)
+        self.u_std = np.std(u_all_simu, axis=0)
+        self.u_all = (u_all_simu-self.u_mean)/self.u_std
     
     def __len__(self):
         return self.u_all.shape[0]
