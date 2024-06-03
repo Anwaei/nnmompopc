@@ -45,7 +45,7 @@ def generate_ref_trajectory_varying(constant_height=300, high_height=350, low_he
     else:
         raise("Ref trajectory type error.")
     t_switch = config_opc.PARA_TF * switch_time
-    trajectory_ref = {'h_r_seq': h_r_seq, 't_switch': t_switch}
+    trajectory_ref = {'h_r_seq': h_r_seq, 't_switch': t_switch, 'time_steps':time_steps}
     return trajectory_ref
 
 
@@ -100,6 +100,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
     nz = config_opc.PARA_NZ_AUXILIARY
     h_r_seq = trajectory_ref['h_r_seq']
     t_switch = trajectory_ref['t_switch']
+    time_steps = trajectory_ref['time_steps']
 
     dt = config_opc.PARA_DT 
     step_all = config_opc.PARA_STEP_NUM
@@ -137,6 +138,17 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         net = OptimalModule()
         net.load_state_dict(torch.load(net_path))
         net.eval()
+        opt_stats = np.load('data/opt_stats.npz')
+        x_mean = opt_stats['x_mean']
+        x_std = opt_stats['x_std']
+        y_mean = opt_stats['y_mean']
+        y_std = opt_stats['y_std']
+        z_mean = opt_stats['z_mean']
+        z_std = opt_stats['z_std']
+        u_mean = opt_stats['u_mean']
+        u_std = opt_stats['u_std']
+        h_r_mean = opt_stats['h_r_mean']
+        h_r_std = opt_stats['h_r_std']
 
     # For pid
     err_int = 0
@@ -152,11 +164,18 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
             print(k)
 
         if control_method == "nn":
-            net_input_state = np.concatenate((x_all[k, :], y_all[k, :], z_all[k, :], h_r_seq[k][np.newaxis]), axis=0)
-            net_input = np.concatenate((net_input_state, net_input_ref)).astype(np.float32)
+            x_normalized = (x_all[k, :]-x_mean)/x_std
+            y_normalized = (y_all[k, :]-y_mean)/y_std
+            z_normalized = (z_all[k, :]-z_mean)/z_std
+            h_r_normalized = (h_r_seq[k]-h_r_mean)/h_r_std
+
+            net_input_state = np.concatenate((x_normalized, y_normalized, z_normalized, h_r_normalized[np.newaxis]), axis=0)
+            net_input_time = time_steps[k][np.newaxis]/config_opc.PARA_TF
+            net_input = np.concatenate((net_input_state, net_input_ref, net_input_time)).astype(np.float32)
             net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
             u_predict = net(net_input)
-            u_all[k, :] = u_predict.detach().numpy().astype(np.float64)
+            u_normalized = u_predict.detach().numpy().astype(np.float64)            
+            u_all[k, :] = u_normalized*u_std + u_mean
         elif control_method == "pid":
             err_pre_pre = err_pre
             err_pre = err_cur

@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch import nn
 from data_generate import OptimalDataset
 from modules import OptimalModule
+from torch.utils.tensorboard import SummaryWriter
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
@@ -19,8 +20,9 @@ def train(dataloader, model, loss_fn, optimizer):
         optimizer.zero_grad()
 
         if i_batch % 100 == 0:
-            loss, current = loss.item(), (i_batch + 1)*len(x)
-            print(f"loss: {loss:>7f} [{current:>5d}/{size:>5d}]")
+            loss_value, current = loss.item(), (i_batch + 1)*len(x)
+            print(f"loss: {loss_value:>7f} [{current:>5d}/{size:>5d}]")
+    return loss.item()
 
 def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
@@ -35,6 +37,7 @@ def test(dataloader, model, loss_fn):
             test_loss += loss_fn(pred, y).item()
     test_loss /= num_batches
     print(f"Test Avg loss: {test_loss:>8f} \n")
+    return test_loss
 
 
 if __name__ == "__main__":
@@ -50,10 +53,12 @@ if __name__ == "__main__":
 
     time_current = datetime.now().strftime('%m-%d-%H%M')
 
+    writer = SummaryWriter('runs/run_'+time_current)
+
     dataset = torch.load('data/opt_data.pt')
-    dataset_train, dataset_test = torch.utils.data.random_split(dataset, [0.7, 0.3])
-    dataloader_train = DataLoader(dataset=dataset_train, batch_size=10, shuffle=False)
-    dataloader_test = DataLoader(dataset=dataset_test, batch_size=10, shuffle=False)
+    dataset_train, dataset_test = torch.utils.data.random_split(dataset, [0.9, 0.1])
+    dataloader_train = DataLoader(dataset=dataset_train, batch_size=20, shuffle=False)
+    dataloader_test = DataLoader(dataset=dataset_test, batch_size=20, shuffle=False)
     # for i_batch, sample_batched in enumerate(dataloader):
     #     print(i_batch)
     #     print(sample_batched["input"][0, 0:8])
@@ -62,14 +67,17 @@ if __name__ == "__main__":
     net = OptimalModule().to(device)
     print(net)
 
-    loss_fn = nn.MSELoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+    # writer.add_graph(net)
 
-    epoches = 10
+    loss_fn = nn.MSELoss()
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.008, momentum=0.9)
+
+    epoches = 200
     for t in range(epoches):
         print(f"Epoch {t+1}\n-------------------------------")
-        train(dataloader_train, net, loss_fn, optimizer)
-        test(dataloader_test, net, loss_fn)
+        train_loss = train(dataloader_train, net, loss_fn, optimizer)
+        test_loss = test(dataloader_test, net, loss_fn)
+        writer.add_scalars('loss', {'train':train_loss, 'test':test_loss}, t)
     
     save_path = 'model/net_' + time_current + '.pth'
     torch.save(net.state_dict(), save_path)

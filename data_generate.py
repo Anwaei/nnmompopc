@@ -10,11 +10,11 @@ import plot_utils as pu
 class OptimalDataset(Dataset):
     def __init__(self, x_all_simu, y_all_simu, z_all_simu, u_all_simu, tra_ref):
         # super().__init__()
-        self.x_all = x_all_simu
-        self.y_all = y_all_simu
-        self.z_all = z_all_simu
-        self.u_all = u_all_simu
-        self.h_r = tra_ref["h_r_seq"]
+        # self.x_all = x_all_simu
+        # self.y_all = y_all_simu
+        # self.z_all = z_all_simu
+        # self.u_all = u_all_simu
+        # self.h_r = tra_ref["h_r_seq"]
 
         # Normalization
         self.x_mean = np.mean(x_all_simu, axis=0)
@@ -28,7 +28,13 @@ class OptimalDataset(Dataset):
         self.z_all = (z_all_simu-self.z_mean)/self.z_std
         self.u_mean = np.mean(u_all_simu, axis=0)
         self.u_std = np.std(u_all_simu, axis=0)
+        # self.u_mean = 0
+        # self.u_std = 1
         self.u_all = (u_all_simu-self.u_mean)/self.u_std
+        self.h_r_mean = np.mean(tra_ref["h_r_seq"])
+        self.h_r_std = np.std(tra_ref["h_r_seq"])
+        self.h_r = (tra_ref["h_r_seq"] - self.h_r_mean)/self.h_r_std
+        self.time_steps = tra_ref["time_steps"]/config_opc.PARA_TF
     
     def __len__(self):
         return self.u_all.shape[0]
@@ -38,9 +44,19 @@ class OptimalDataset(Dataset):
             idx = idx.tolist()
         aux_states = np.concatenate((self.x_all[idx, :], self.y_all[idx, :], self.z_all[idx, :], self.h_r[idx][np.newaxis]), axis=0)  # Shape: (5+2+1+1, 1)
         control_value = self.u_all[idx, :]
-        sample = {"input": np.concatenate((aux_states, self.h_r)).astype(np.float32), "output": control_value.astype(np.float32)}
+        t = self.time_steps[idx][np.newaxis]
+        sample = {"input": np.concatenate((aux_states, t, self.h_r)).astype(np.float32), "output": control_value.astype(np.float32)}
         return sample
+    
 
+def save_statistics(dataset):
+    np.savez('data/opt_stats.npz', 
+             x_mean=dataset.x_mean, x_std=dataset.x_std,
+             y_mean=dataset.y_mean, y_std=dataset.y_std,
+             z_mean=dataset.z_mean, z_std=dataset.z_std,
+             u_mean=dataset.u_mean, u_std=dataset.u_std,
+             h_r_mean=dataset.h_r_mean, h_r_std=dataset.h_r_std)
+    return
 
 if __name__ == "__main__":
 
@@ -58,5 +74,6 @@ if __name__ == "__main__":
     #     print(sample_batched["input"][0, 0:8])
     #     print(sample_batched["output"][0, :])
     torch.save(dataset, 'data/opt_data.pt')
+    save_statistics(dataset)
     pass
     

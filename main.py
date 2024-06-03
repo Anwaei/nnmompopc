@@ -30,7 +30,7 @@ if __name__ == '__main__':
 #     x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
 #     pu.plot_trajectory_auxiliary(pic_folder, x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, tra_ref, aero_info)
 
-    net_path = 'model/net_05-16-2116.pth'
+    net_path = 'model/net_05-26-2135.pth'
     x_all_net, y_all_net, z_all_net, u_all_net, j_f_net, aero_info_net = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="nn", net_path=net_path)
     pu.plot_trajectory_auxiliary(pic_folder, x_all_net, y_all_net, z_all_net, u_all_net, j_f_net, tra_ref, aero_info_net)
 
