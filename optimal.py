@@ -261,6 +261,7 @@ def function_objective_casadi(X, t_switch):
     gy = y_last - casadi.MX([PARA_EPI12 * t_switch, -PARA_EPI22 * (PARA_TF - t_switch)])
     max_gy = casadi.mmax(gy)
     cost = casadi.fmax(max_gy, -z_last[0])
+    cost = 0.95*casadi.fmax(max_gy, -z_last[0]) + 0.05*(X[(PARA_N_LGL_ALL-1) * PARA_NX_AUXILIARY + 4] - 300)**2 / 100000
     # return -z_last[0]
     # cost = casadi.fmin(max_gy+50, -z_last[0])
     return cost
@@ -414,8 +415,9 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     opts["expand"] = True
 
     # opts["ipopt.max_iter"] = 100
-    opts["ipopt.acceptable_tol"] = 1e-3
+    opts["ipopt.acceptable_tol"] = 1e-5
     # opts["ipopt.linear_solver"] = 'ma27'
+    # opts["verbose"] = False
     solver = casadi.nlpsol('S', 'ipopt', nlp, opts)
     res = solver(x0=X0, lbg=lbg, ubg=ubg)
     print("optimal cost: ", float(res["f"]))

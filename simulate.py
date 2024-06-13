@@ -91,7 +91,7 @@ def simulate_origin(x0, trajectory_ref, control_method):
     
     return x_all, u_all, j_all
 
-def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net_path=None):
+def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net_path=None, trajectory_opt=None):
     print("Simulation start. Control method: " + control_method)    
     nx = config_opc.PARA_NX_AUXILIARY
     nu = config_opc.PARA_NU_AUXILIARY
@@ -132,7 +132,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
     angle_deg_all[0, :] = x0[1:4] / np.pi * 180
 
     # For net
-    net_input_ref = h_r_seq
+    torch.set_grad_enabled(False)
     net = None
     if control_method == "nn":
         net = OptimalModule()
@@ -149,6 +149,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         u_std = opt_stats['u_std']
         h_r_mean = opt_stats['h_r_mean']
         h_r_std = opt_stats['h_r_std']
+        net_input_ref = (h_r_seq-h_r_mean)/h_r_std
 
     # For pid
     err_int = 0
@@ -160,22 +161,28 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         x_all[k, :], y_all[k, :], z_all[k, :] = dyn.dynamic_auxiliary_one_step(x=x_all[k-1, :], y=y_all[k-1, :], z=z_all[k-1, :], 
         x_r=h_r_seq[k-1], u=u_all[k-1, :], t=k*dt, t_switch=t_switch)
 
-        if k % 10000 == 0:
-            print(k)
+        if k % 1000 == 0:
+            print(f"Simulation step: {k}/{step_all}")
 
         if control_method == "nn":
-            x_normalized = (x_all[k, :]-x_mean)/x_std
-            y_normalized = (y_all[k, :]-y_mean)/y_std
-            z_normalized = (z_all[k, :]-z_mean)/z_std
-            h_r_normalized = (h_r_seq[k]-h_r_mean)/h_r_std
+            if trajectory_opt is not None:
+                x_normalized = (trajectory_opt[0][k, :]-x_mean)/x_std
+                y_normalized = (trajectory_opt[1][k, :]-y_mean)/y_std
+                z_normalized = (trajectory_opt[2][k, :]-z_mean)/z_std
+            else:
+                x_normalized = (x_all[k, :]-x_mean)/x_std
+                y_normalized = (y_all[k, :]-y_mean)/y_std
+                z_normalized = (z_all[k, :]-z_mean)/z_std
+            h_r_normalized = net_input_ref[k]
 
             net_input_state = np.concatenate((x_normalized, y_normalized, z_normalized, h_r_normalized[np.newaxis]), axis=0)
             net_input_time = time_steps[k][np.newaxis]/config_opc.PARA_TF
-            net_input = np.concatenate((net_input_state, net_input_ref, net_input_time)).astype(np.float32)
+            net_input = np.concatenate((net_input_state, net_input_time, net_input_ref)).astype(np.float32)
             net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
             u_predict = net(net_input)
             u_normalized = u_predict.detach().numpy().astype(np.float64)            
             u_all[k, :] = u_normalized*u_std + u_mean
+
         elif control_method == "pid":
             err_pre_pre = err_pre
             err_pre = err_cur
@@ -202,4 +209,5 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
     # j_f = dyn.cost_auxiliary(y_f=y_all[-1, :], z_f=z_all[-1, :], t_switch=t_switch)
     j_f = dyn.cost_auxiliary_all(y_f=y_all[-1, :], z_f=z_all[-1, :], t_switch=t_switch)
 
+    torch.set_grad_enabled(True)
     return x_all, y_all, z_all, u_all, j_f, (aero_forces_all, aero_deriv_all, angle_deg_all)

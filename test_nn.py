@@ -8,7 +8,7 @@ import config_opc
 import plot_utils as pu
 
 if __name__ == '__main__':
-    net_path = 'model/net_06-03-1257.pth'
+    net_path = 'model/net_06-03-2200.pth'
     net = OptimalModule()
     net.load_state_dict(torch.load(net_path))
     net.eval()
@@ -36,16 +36,16 @@ if __name__ == '__main__':
 
     u_all_pred = np.zeros((config_opc.PARA_STEP_NUM, config_opc.PARA_NU_AUXILIARY))
     with torch.no_grad():
-        net_input_ref = h_r_seq
+        net_input_ref = (h_r_seq-h_r_mean)/h_r_std
         for k in range(config_opc.PARA_STEP_NUM):
             x_normalized = (x_all_simu[k, :]-x_mean)/x_std
             y_normalized = (y_all_simu[k, :]-y_mean)/y_std
             z_normalized = (z_all_simu[k, :]-z_mean)/z_std
-            h_r_normalized = (h_r_seq[k]-h_r_mean)/h_r_std
-
+            h_r_normalized = net_input_ref[k]
+            
             net_input_state = np.concatenate((x_normalized, y_normalized, z_normalized, h_r_normalized[np.newaxis]), axis=0)
             net_input_time = time_steps[k][np.newaxis]/config_opc.PARA_TF
-            net_input = np.concatenate((net_input_state, net_input_ref, net_input_time)).astype(np.float32)
+            net_input = np.concatenate((net_input_state, net_input_time, net_input_ref)).astype(np.float32)
             net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
             u_predict = net(net_input)
             u_normalized = u_predict.detach().numpy().astype(np.float64)            

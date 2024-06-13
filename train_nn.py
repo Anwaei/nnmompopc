@@ -7,11 +7,15 @@ from data_generate import OptimalDataset
 from modules import OptimalModule
 from torch.utils.tensorboard import SummaryWriter
 
+def add_noise(x):
+    x_a = x + torch.randn()
+
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
     for i_batch, sample_batched in enumerate(dataloader):
         x = sample_batched["input"].to(device)
+
         y = sample_batched["output"].to(device)
         pred = model(x)
         loss = loss_fn(pred, y)
@@ -56,7 +60,7 @@ if __name__ == "__main__":
     writer = SummaryWriter('runs/run_'+time_current)
 
     dataset = torch.load('data/opt_data.pt')
-    dataset_train, dataset_test = torch.utils.data.random_split(dataset, [0.9, 0.1])
+    dataset_train, dataset_test = torch.utils.data.random_split(dataset, [0.8, 0.2])
     dataloader_train = DataLoader(dataset=dataset_train, batch_size=20, shuffle=False)
     dataloader_test = DataLoader(dataset=dataset_test, batch_size=20, shuffle=False)
     # for i_batch, sample_batched in enumerate(dataloader):
@@ -70,9 +74,9 @@ if __name__ == "__main__":
     # writer.add_graph(net)
 
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.008, momentum=0.9)
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.006, momentum=0.9)
 
-    epoches = 200
+    epoches = 500
     for t in range(epoches):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loss = train(dataloader_train, net, loss_fn, optimizer)
