@@ -6,13 +6,14 @@ import simulate as simu
 import optimal as opt
 import config_opc
 import plot_utils as pu
+from calculate_utils import cal_mask_mat
 
 if __name__ == '__main__':
-    net_path = 'model/net_06-03-2200.pth'
+    net_path = 'model/net_06-18-1854/epoch_251.pth'
     net = OptimalModule()
     net.load_state_dict(torch.load(net_path))
     net.eval()
-    opt_stats = np.load('data/opt_stats.npz')
+    opt_stats = np.load('data/opt_stats_06-17-1219.npz')
     x_mean = opt_stats['x_mean']
     x_std = opt_stats['x_std']
     y_mean = opt_stats['y_mean']
@@ -47,7 +48,8 @@ if __name__ == '__main__':
             net_input_time = time_steps[k][np.newaxis]/config_opc.PARA_TF
             net_input = np.concatenate((net_input_state, net_input_time, net_input_ref)).astype(np.float32)
             net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
-            u_predict = net(net_input)
+            mask_mat = cal_mask_mat(net_input)
+            u_predict = net(net_input, mask_mat)
             u_normalized = u_predict.detach().numpy().astype(np.float64)            
             u_all_pred[k, :] = u_normalized*u_std + u_mean
     

@@ -2,25 +2,34 @@ import numpy as np
 import config_opc
 import casadi
 
+def rad2deg(theta):
+    theta = theta/np.pi*180
+    # theta = (casadi.fmod((theta + 180), 360)) - 180
+    return theta
 
 def aerodynamic_derivative(xi, key):
     return config_opc.PARA_C0[key] + config_opc.PARA_C1[key] * xi
 
 
 def aerodynamic_coefficient_lift(alpha, xi, delta_e):
-    alpha_deg = alpha/np.pi*180
-    delta_e_deg = delta_e/np.pi*180
+    # alpha_deg = alpha/np.pi*180
+    # delta_e_deg = delta_e/np.pi*180
+    alpha_deg = rad2deg(alpha)
+    delta_e_deg = rad2deg(delta_e)
     return aerodynamic_derivative(xi, key='L0') + aerodynamic_derivative(xi, key='Lalpha') * alpha_deg + config_opc.PARA_CLdeltae * delta_e_deg
 
 
 def aerodynamic_coefficient_drag(alpha, xi):
-    alpha_deg = alpha / np.pi * 180
+    # alpha_deg = alpha / np.pi * 180
+    alpha_deg = rad2deg(alpha)
     return aerodynamic_derivative(xi, key='D0') + aerodynamic_derivative(xi, key='Dalpha') * alpha_deg + aerodynamic_derivative(xi, key='Dalpha2') * (alpha_deg**2)
 
 
 def aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e):
-    alpha_deg = alpha / np.pi * 180
-    delta_e_deg = delta_e / np.pi * 180
+    # alpha_deg = alpha / np.pi * 180
+    # delta_e_deg = delta_e / np.pi * 180
+    alpha_deg = rad2deg(alpha)
+    delta_e_deg = rad2deg(delta_e)
     M = aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
     return aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
 

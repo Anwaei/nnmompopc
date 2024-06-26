@@ -1,6 +1,8 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
+from datetime import datetime
+
 import config_opc
 import dynamics2 as dyn
 import simulate as simu
@@ -17,6 +19,7 @@ class OptimalDataset(Dataset):
         self.h_r = None
         self.time_steps = None
         self.have_item = False
+        self.step_num = 0
 
         # # Normalization
         # self.x_mean = np.mean(x_all_simu, axis=0)
@@ -47,7 +50,8 @@ class OptimalDataset(Dataset):
         aux_states = np.concatenate((self.x_all[idx, :], self.y_all[idx, :], self.z_all[idx, :], self.h_r[idx][np.newaxis]), axis=0)  # Shape: (5+2+1+1, 1)
         control_value = self.u_all[idx, :]
         t = self.time_steps[idx][np.newaxis]
-        sample = {"input": np.concatenate((aux_states, t, self.h_r)).astype(np.float32), "output": control_value.astype(np.float32)}
+        no = idx//self.step_num
+        sample = {"input": np.concatenate((aux_states, t, self.h_r[no*self.step_num:(no+1)*self.step_num])).astype(np.float32), "output": control_value.astype(np.float32)}
         return sample
     
     def append_item(self, x_all_simu, y_all_simu, z_all_simu, u_all_simu, tra_ref):
@@ -65,7 +69,10 @@ class OptimalDataset(Dataset):
             self.u_all = u_all_simu
             self.h_r = tra_ref["h_r_seq"]
             self.time_steps = tra_ref["time_steps"]
+            self.step_num = self.u_all.shape[0]
+            print(f"Step num: {self.step_num}")
             self.have_item = True
+
     
     def normalization(self):
         self.x_mean = np.mean(self.x_all, axis=0)
@@ -88,8 +95,8 @@ class OptimalDataset(Dataset):
         self.time_steps = self.time_steps/config_opc.PARA_TF
     
 
-def save_statistics(dataset):
-    np.savez('data/opt_stats.npz', 
+def save_statistics(dataset, time_stamp):
+    np.savez(f'data/opt_stats_{time_stamp}.npz', 
              x_mean=dataset.x_mean, x_std=dataset.x_std,
              y_mean=dataset.y_mean, y_std=dataset.y_std,
              z_mean=dataset.z_mean, z_std=dataset.z_std,
@@ -116,8 +123,9 @@ if __name__ == "__main__":
     # save_statistics(dataset)
     # pass
     
+    time_current = datetime.now().strftime('%m-%d-%H%M')
     dataset = OptimalDataset()
-    err_thr = 2e-4
+    err_thr = 3e-5
     switch_time = 0.5
     high_heights = np.arange(start=330, stop=380, step=10)
     low_heights = np.arange(start=270, stop=220, step=-10)
@@ -137,6 +145,6 @@ if __name__ == "__main__":
 
     for pair in pairs:
         print(pair)
-    torch.save(dataset, 'data/opt_data.pt')
-    save_statistics(dataset)
+    torch.save(dataset, f'data/opt_data_{time_current}.pt')
+    save_statistics(dataset, time_current)
     pass

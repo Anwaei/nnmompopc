@@ -1,18 +1,20 @@
 import torch
 from torch import nn
 import numpy as np
+import config_opc
 
 class OptimalModule(nn.Module):
 
     def __init__(self, *args):
         super().__init__()
-        self.aux_states_dim = 5+2+1+1
-        self.hidden_dim = 32
-        self.time_dim = 1
-        self.ref_dim = 10001
-        self.q_dim = 32
-        self.k_dim = 32
-        self.v_dim = 32
+        self.dt = config_opc.PARA_DT
+        self.aux_states_dim = config_opc.AUX_STATES_DIM
+        self.hidden_dim = config_opc.HIDDEN_DIM
+        self.time_dim = config_opc.TIME_DIM
+        self.ref_dim = config_opc.REF_DIM
+        self.q_dim = config_opc.Q_DIM
+        self.k_dim = config_opc.K_DIM
+        self.v_dim = config_opc.V_DIM
         self.state_fc_block = nn.Sequential(
             nn.Linear(self.aux_states_dim, 32),
             nn.LeakyReLU(),
@@ -57,7 +59,7 @@ class OptimalModule(nn.Module):
         )
 
 
-    def forward(self, input):
+    def forward(self, input, mask_mat):
         aux_states = input[:, 0:self.aux_states_dim]
         time = input[:, self.aux_states_dim:self.aux_states_dim+self.time_dim]
         h_r = input[:, self.aux_states_dim+self.time_dim:]
@@ -71,7 +73,11 @@ class OptimalModule(nn.Module):
         value = self.v_block(h_r)  # n_batch*step_num*d_v
         # d_q == d_k, then
         score = torch.matmul(query, torch.transpose(key, 1, 2))/np.sqrt(self.q_dim)  # n_batch*1*step_num
+        # time_index = int(time/self.dt)
+        # score[0:time_index] = -1e8  # mask
+        score = score + mask_mat
         score = torch.softmax(score, dim=2)  # n_batch*1*step_num
+        # torch.nn.MultiheadAttention()
         att_out = torch.matmul(score, value)  # n_batch*1*d_v
         att_out = torch.squeeze(att_out, dim=1)  # n_batch*d_v
 

@@ -5,6 +5,7 @@ import dynamics2 as dyn
 import config_opc
 import plot_utils as pu
 from modules import OptimalModule
+from calculate_utils import cal_mask_mat
 
 def control_origin_constant():
     u_constant = np.array([0.1, 0.8, 0.5])
@@ -138,7 +139,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         net = OptimalModule()
         net.load_state_dict(torch.load(net_path))
         net.eval()
-        opt_stats = np.load('data/opt_stats.npz')
+        opt_stats = np.load('data/opt_stats_06-17-1219.npz')
         x_mean = opt_stats['x_mean']
         x_std = opt_stats['x_std']
         y_mean = opt_stats['y_mean']
@@ -157,6 +158,24 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
     err_pre = 0
     err_pre_pre = 0
 
+    # Set u0
+    if control_method == "given":
+        u_all[0, :] = given_input[0, :]
+    elif control_method == "nn":
+        x_normalized = (x_all[0, :]-x_mean)/x_std
+        y_normalized = (y_all[0, :]-y_mean)/y_std
+        z_normalized = (z_all[0, :]-z_mean)/z_std
+        h_r_normalized = net_input_ref[0]
+        net_input_state = np.concatenate((x_normalized, y_normalized, z_normalized, h_r_normalized[np.newaxis]), axis=0)
+        net_input_time = time_steps[0][np.newaxis]/config_opc.PARA_TF
+        net_input = np.concatenate((net_input_state, net_input_time, net_input_ref)).astype(np.float32)
+        net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
+        mask_mat = cal_mask_mat(net_input)
+        u_predict = net(net_input, mask_mat)
+        u_normalized = u_predict.detach().numpy().astype(np.float64)
+        uc = np.clip(u_normalized*u_std + u_mean, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)            
+        u_all[0, :] = uc
+
     for k in range(1, step_all):
         x_all[k, :], y_all[k, :], z_all[k, :] = dyn.dynamic_auxiliary_one_step(x=x_all[k-1, :], y=y_all[k-1, :], z=z_all[k-1, :], 
         x_r=h_r_seq[k-1], u=u_all[k-1, :], t=k*dt, t_switch=t_switch)
@@ -165,6 +184,8 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
             print(f"Simulation step: {k}/{step_all}")
 
         if control_method == "nn":
+            if k == 250:
+                pass
             if trajectory_opt is not None:
                 x_normalized = (trajectory_opt[0][k, :]-x_mean)/x_std
                 y_normalized = (trajectory_opt[1][k, :]-y_mean)/y_std
@@ -179,9 +200,13 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
             net_input_time = time_steps[k][np.newaxis]/config_opc.PARA_TF
             net_input = np.concatenate((net_input_state, net_input_time, net_input_ref)).astype(np.float32)
             net_input = torch.from_numpy(np.expand_dims(net_input, axis=0))
-            u_predict = net(net_input)
-            u_normalized = u_predict.detach().numpy().astype(np.float64)            
-            u_all[k, :] = u_normalized*u_std + u_mean
+            mask_mat = cal_mask_mat(net_input)
+            u_predict = net(net_input, mask_mat)
+            u_normalized = u_predict.detach().numpy().astype(np.float64)
+            uc = np.clip(u_normalized*u_std + u_mean, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)            
+            u_all[k, :] = uc            
+            # u_all[k, :] = u_normalized*u_std + u_mean
+            pass
 
         elif control_method == "pid":
             err_pre_pre = err_pre

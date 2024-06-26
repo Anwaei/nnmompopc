@@ -59,7 +59,8 @@ PARA_ERROR_SCALE = 1000000
 # Order: V, gamma, q, alpha, h
 # PARA_X0 = np.array([20, 0, 0, 3.359, 300])
 # Order2: V, alpha, q, theta, h
-PARA_X0 = np.array([20, 3/180*np.pi, -2/180*np.pi, 3/180*np.pi, 300])
+# PARA_X0 = np.array([20, 3/180*np.pi, -2/180*np.pi, 3/180*np.pi, 300])
+PARA_X0 = np.array([20, 10/180*np.pi, -6/180*np.pi, 3/180*np.pi, 300])
 # Order: delta_e, delta_T, xi
 PARA_U0 = np.array([0.0, 0.5, 0.5])
 # PARA_U0 = np.array([0.0, 0.0, 0.0])
@@ -77,3 +78,16 @@ PARA_KD = np.array([0.000, 0.0, 0.0])
 PARA_KB = np.array([0.5, 0.5, 0.5])
 # PARA_KP = np.array([0.000, 0.000, 0.000])
 # PARA_KI = np.array([0.000, 0.000, 0.0])
+
+
+
+# ----- NN Model Configurations -----
+AUX_STATES_DIM = 5+2+1+1
+HIDDEN_DIM = 32
+TIME_DIM = 1
+REF_DIM = 10001
+Q_DIM = 32
+K_DIM = 32
+V_DIM = 32
+
+
