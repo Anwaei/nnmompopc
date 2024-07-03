@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # tra_ref = simu.generate_ref_trajectory_constant(constant_height=300)
     switch_time = 0.5
     constant_height=300
-    tra_ref = simu.generate_ref_trajectory_varying(constant_height=constant_height, switch_time=switch_time, high_height=350, low_height=250)
+    tra_ref = simu.generate_ref_trajectory_varying(constant_height=constant_height, switch_time=switch_time, high_height=360, low_height=260)
 
 #     # x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="pid")
 #     # pu.plot_trajectory_auxiliary(x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, tra_ref, aero_info)
@@ -32,7 +32,7 @@ if __name__ == '__main__':
          os.mkdir(pic_folder)
     pu.plot_trajectory_auxiliary(pic_folder, x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, tra_ref, aero_info)
 
-    net_path = 'model/net_06-18-1854/epoch_251.pth'
+    net_path = config_opc.NET_PATH
     t_o = (x_all_simu, y_all_simu, z_all_simu)
     x_all_net, y_all_net, z_all_net, u_all_net, j_f_net, aero_info_net = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, 
                                                                                                  control_method="nn", net_path=net_path, 

@@ -91,3 +91,8 @@ K_DIM = 32
 V_DIM = 32
 
 
+#
+DATA_PATH = 'data/opt_data_06-26-1818.pt'
+STAT_PATH = 'data/opt_stats_06-26-1818.npz'
+NET_PATH = ''
+

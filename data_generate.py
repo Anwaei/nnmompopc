@@ -125,10 +125,10 @@ if __name__ == "__main__":
     
     time_current = datetime.now().strftime('%m-%d-%H%M')
     dataset = OptimalDataset()
-    err_thr = 3e-5
+    err_thr = 3e-3
     switch_time = 0.5
-    high_heights = np.arange(start=330, stop=380, step=10)
-    low_heights = np.arange(start=270, stop=220, step=-10)
+    high_heights = np.arange(start=350, stop=360, step=10)
+    low_heights = np.arange(start=250, stop=240, step=-10)
     pairs = []
     for h in high_heights:
         for l in low_heights:

@@ -139,7 +139,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         net = OptimalModule()
         net.load_state_dict(torch.load(net_path))
         net.eval()
-        opt_stats = np.load('data/opt_stats_06-17-1219.npz')
+        opt_stats = np.load(config_opc.STAT_PATH)
         x_mean = opt_stats['x_mean']
         x_std = opt_stats['x_std']
         y_mean = opt_stats['y_mean']

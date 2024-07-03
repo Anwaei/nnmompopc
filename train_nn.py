@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     writer = SummaryWriter('runs/run_'+time_current)
 
-    dataset = torch.load('data/opt_data_06-26-1818.pt')
+    dataset = torch.load(config_opc.DATA_PATH)
     train_prop = 0.8
     train_length, test_length = int(len(dataset)*train_prop), len(dataset) - int(len(dataset)*train_prop)
     dataset_train, dataset_test = torch.utils.data.random_split(dataset, [train_length, test_length])
