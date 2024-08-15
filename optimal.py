@@ -415,7 +415,7 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     opts["expand"] = True
 
     # opts["ipopt.max_iter"] = 100
-    opts["ipopt.acceptable_tol"] = 1e-6
+    opts["ipopt.acceptable_tol"] = 1e-5
     # opts["ipopt.linear_solver"] = 'ma27'
     # opts["verbose"] = False
     solver = casadi.nlpsol('S', 'ipopt', nlp, opts)

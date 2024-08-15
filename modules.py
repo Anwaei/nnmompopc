@@ -18,6 +18,8 @@ class OptimalModule(nn.Module):
         self.state_fc_block = nn.Sequential(
             nn.Linear(self.aux_states_dim, 32),
             nn.LeakyReLU(),
+            nn.Linear(32, 32),
+            nn.LeakyReLU(),
             nn.Linear(32, self.hidden_dim),
             nn.LeakyReLU()
         )
@@ -25,6 +27,8 @@ class OptimalModule(nn.Module):
             nn.Linear(self.ref_dim, 64),
             nn.LeakyReLU(),
             nn.Linear(64, 32),
+            nn.LeakyReLU(),
+            nn.Linear(32, 32),
             nn.ReLU()
         )
         self.time_fc_block = nn.Sequential(
@@ -40,20 +44,30 @@ class OptimalModule(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(32, 32),
             nn.LeakyReLU(),
+            nn.Linear(32, 32),
+            nn.LeakyReLU(),
+            nn.Linear(32, 32),
+            nn.LeakyReLU(),
             nn.Linear(32, 3)
         )
         self.q_block = nn.Sequential(
             nn.Linear(self.hidden_dim, self.q_dim),
+            nn.LeakyReLU(),
+            nn.Linear(self.q_dim, self.q_dim),
             nn.LeakyReLU(),
             nn.Linear(self.q_dim, self.q_dim)
         )
         self.k_block = nn.Sequential(
             nn.Linear(1, self.k_dim),
             nn.LeakyReLU(),
+            nn.Linear(self.k_dim, self.k_dim),
+            nn.LeakyReLU(),
             nn.Linear(self.k_dim, self.k_dim)
         )
         self.v_block = nn.Sequential(
             nn.Linear(1, self.v_dim),
+            nn.LeakyReLU(),
+            nn.Linear(self.v_dim, self.v_dim),
             nn.LeakyReLU(),
             nn.Linear(self.v_dim, self.v_dim)
         )
