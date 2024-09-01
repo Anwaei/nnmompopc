@@ -68,11 +68,11 @@ if __name__ == "__main__":
     writer = SummaryWriter('runs/run_'+time_current)
 
     dataset = torch.load(config_opc.DATA_PATH)
-    train_prop = 0.8
+    train_prop = config_opc.TRAIN_PROP
     train_length, test_length = int(len(dataset)*train_prop), len(dataset) - int(len(dataset)*train_prop)
     dataset_train, dataset_test = torch.utils.data.random_split(dataset, [train_length, test_length])
-    dataloader_train = DataLoader(dataset=dataset_train, batch_size=20, shuffle=False)
-    dataloader_test = DataLoader(dataset=dataset_test, batch_size=20, shuffle=False)
+    dataloader_train = DataLoader(dataset=dataset_train, batch_size=config_opc.BATCH_SIZE, shuffle=False)
+    dataloader_test = DataLoader(dataset=dataset_test, batch_size=config_opc.BATCH_SIZE, shuffle=False)
     # for i_batch, sample_batched in enumerate(dataloader):
     #     print(i_batch)
     #     print(sample_batched["input"][0, 0:8])
@@ -84,13 +84,28 @@ if __name__ == "__main__":
     # writer.add_graph(net)
 
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.008, momentum=0.9)
+    optimizer = torch.optim.SGD(net.parameters(), lr=config_opc.LEARNING_RATE, momentum=config_opc.MOMENTUM)
 
     epoches = 500
     test_loss_min = 100
     save_folder = 'model/net_' + time_current
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
+    network_info_file = f"{save_folder}/network_info_{time_current}.txt"
+
+    summary_net = str(net)
+    summary_optimizer = str(optimizer)
+    with open(network_info_file, "w") as f:
+        f.write("Network Summary:\n")
+        f.write(summary_net)
+        f.write("\nOptimizer Summary:\n")
+        f.write(summary_optimizer)
+        f.write("\nAdditional Information:\n")
+        f.write(f"  Dataset: {config_opc.DATA_PATH}")
+        f.write(f"  Train Prop: {config_opc.TRAIN_PROP}\n")
+        f.write(f"  Batch Size: {config_opc.BATCH_SIZE}\n")
+        f.write("\nTraining Performance:\n")
+
     for t in range(epoches):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loss = train(dataloader_train, net, loss_fn, optimizer)
@@ -105,3 +120,6 @@ if __name__ == "__main__":
 
     save_path = 'model/net_' + time_current + '.pth'
     torch.save(net.state_dict(), save_path)
+
+    with open(network_info_file, "a") as f:
+        f.write(f"  Minimum Test Loss: {test_loss_min}\n")

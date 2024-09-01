@@ -86,13 +86,17 @@ AUX_STATES_DIM = 5+2+1+1
 HIDDEN_DIM = 32
 TIME_DIM = 1
 REF_DIM = 10001
-Q_DIM = 32
-K_DIM = 32
-V_DIM = 32
+Q_DIM = 64
+K_DIM = 64
+V_DIM = 64
 
+LEARNING_RATE = 0.008
+MOMENTUM = 0.9
+BATCH_SIZE = 20
+TRAIN_PROP = 0.8
 
 #
-DATA_PATH = 'data/opt_data_08-09-1334.pt'
-STAT_PATH = 'data/opt_stats_08-09-1334.npz'
-NET_PATH = 'model/net_08-09-1336/epoch_493.pth'
+DATA_PATH = 'data/opt_data_08-21-1912.pt'
+STAT_PATH = 'data/opt_stats_08-21-1912.npz'
+NET_PATH = 'model/net_08-26-2042/epoch_443.pth'
 
