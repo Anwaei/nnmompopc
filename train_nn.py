@@ -86,7 +86,7 @@ if __name__ == "__main__":
     loss_fn = nn.MSELoss()
     optimizer = torch.optim.SGD(net.parameters(), lr=config_opc.LEARNING_RATE, momentum=config_opc.MOMENTUM)
 
-    epoches = 500
+    epoches = config_opc.EPOCHES
     test_loss_min = 100
     save_folder = 'model/net_' + time_current
     if not os.path.exists(save_folder):
@@ -101,9 +101,10 @@ if __name__ == "__main__":
         f.write("\nOptimizer Summary:\n")
         f.write(summary_optimizer)
         f.write("\nAdditional Information:\n")
-        f.write(f"  Dataset: {config_opc.DATA_PATH}")
+        f.write(f"  Dataset: {config_opc.DATA_PATH}\n")
         f.write(f"  Train Prop: {config_opc.TRAIN_PROP}\n")
         f.write(f"  Batch Size: {config_opc.BATCH_SIZE}\n")
+        f.write(f"  Epoches: {config_opc.EPOCHES}\n")
         f.write("\nTraining Performance:\n")
 
     for t in range(epoches):
