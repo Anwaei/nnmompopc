@@ -264,3 +264,54 @@ def plot_trajectory_comparison(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_
     plt.savefig(pic_folder + "\\control_comparison.png")
 
     plt.show()
+
+
+def plot_comparison_open(pic_folder, result_nomorphing, result_morphing, ref_trajectory):
+    x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
+    x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
+
+    time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
+
+    plt.figure()
+    plt.title("Trajectory comparison")
+
+    plt.figure()
+    plt.title("[Simulate] Trajectories")
+    plt.subplot(2,2,1)
+    plt.plot(time_steps, ref_trajectory['h_r_seq'])
+    plt.plot(time_steps, x_all)
+    plt.ylim([-100, 500])
+    # plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
+    plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h'])
+    plt.subplot(2,2,2)
+    plt.plot(time_steps, u_all)
+    plt.legend(['delta_e', 'delta_T', 'xi'])
+    plt.subplot(2,2,3)
+    plt.plot(time_steps, y_all)
+    plt.legend(['y12', 'y22'])
+    plt.subplot(2,2,4)
+    plt.plot(time_steps, z_all)
+    plt.legend('z')
+    # print('J final =' + str(j_f))
+    plt.savefig(pic_folder + "\\trajectory.png")
+
+    print(f"Final tracking error: {j_f[0]}")
+    print(f"Final cruise cost: {j_f[1]}")
+    print(f"Final aggressive cost: {j_f[2]}")
+
+    aero_forces_all, aero_deriv_all, angle_deg_all = aero_info
+    plt.figure()
+    plt.title("[Simulate] AeroInfo")
+    plt.subplot(3, 1, 1)
+    plt.plot(time_steps, aero_forces_all)
+    plt.legend(['L', 'D', 'M'])
+    plt.subplot(3, 1, 2)
+    plt.plot(time_steps, aero_deriv_all)
+    plt.legend(['CL', 'CD', 'CM'])
+    plt.subplot(3, 1, 3)
+    plt.plot(time_steps, angle_deg_all)
+    plt.legend(['alpha', 'q', 'theta'])
+
+    plt.savefig(pic_folder + "\\aeroinfo.png")
+
+    plt.show()

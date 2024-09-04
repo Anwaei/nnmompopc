@@ -386,7 +386,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
     # return eq_cons_array
 
 
-def generate_PS_solution_casadi(x0, trajectory_ref):
+def generate_PS_solution_casadi(x0, trajectory_ref, morphing_disabled=False):
     t_switch = trajectory_ref['t_switch']
     h_ref = trajectory_ref['h_r_seq']
     LGL_points = calculate_LGL_points(N_LGL=PARA_N_LGL_AGGRE)  # Assume same number
@@ -405,9 +405,13 @@ def generate_PS_solution_casadi(x0, trajectory_ref):
     ueqcons_index = PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) \
            +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY) \
            +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
-
-    lbg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([PARA_U_LOWER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
-    ubg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([PARA_U_UPPER_BOUND for i in range(PARA_N_LGL_ALL)], 0)
+    ulb = PARA_U_LOWER_BOUND
+    uub = PARA_U_UPPER_BOUND
+    if morphing_disabled:
+        ulb[-1] = 0
+        uub[-1] = 0
+    lbg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([ulb for i in range(PARA_N_LGL_ALL)], 0)
+    ubg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([uub for i in range(PARA_N_LGL_ALL)], 0)
     ubg[ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY+PARA_N_LGL_ALL] = 100 * np.ones(PARA_N_LGL_ALL)
 
     nlp = {'x':V, 'f':J, 'g':g}
