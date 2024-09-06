@@ -260,7 +260,8 @@ def function_objective_casadi(X, t_switch):
     y_last = casadi.vertcat(y_last_aggre, -y_last_cruise)
     gy = y_last - casadi.MX([PARA_EPI12 * t_switch, -PARA_EPI22 * (PARA_TF - t_switch)])
     max_gy = casadi.mmax(gy)
-    cost = casadi.fmax(max_gy, -z_last[0] + 0.05*(X[(PARA_N_LGL_ALL-1) * PARA_NX_AUXILIARY + 4] - 300)**2 / 10000)
+    # cost = casadi.fmax(max_gy, -z_last[0] + 0.05*(X[(PARA_N_LGL_ALL-1) * PARA_NX_AUXILIARY + 4] - 300)**2 / 10000) # ori
+    cost = casadi.fmax(max_gy, -z_last[0] + 0.02*(X[(PARA_N_LGL_ALL-1) * PARA_NX_AUXILIARY + 4] - 300)**2 / 10000)
     # cost = 0.95*casadi.fmax(max_gy, -z_last[0]) + 0.05*(X[(PARA_N_LGL_ALL-1) * PARA_NX_AUXILIARY + 4] - 300)**2 / 10000
     # return -z_last[0]
     # cost = casadi.fmin(max_gy+50, -z_last[0])
@@ -405,11 +406,11 @@ def generate_PS_solution_casadi(x0, trajectory_ref, morphing_disabled=False):
     ueqcons_index = PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY) \
            +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY+PARA_NU_AUXILIARY) \
            +(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)
-    ulb = PARA_U_LOWER_BOUND
-    uub = PARA_U_UPPER_BOUND
+    ulb = PARA_U_LOWER_BOUND.copy()
+    uub = PARA_U_UPPER_BOUND.copy()
     if morphing_disabled:
-        ulb[-1] = 0
-        uub[-1] = 0
+        ulb[-1] = PARA_FIX_XI
+        uub[-1] = PARA_FIX_XI
     lbg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([ulb for i in range(PARA_N_LGL_ALL)], 0)
     ubg[ueqcons_index: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY] = np.concatenate([uub for i in range(PARA_N_LGL_ALL)], 0)
     ubg[ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY: ueqcons_index+PARA_N_LGL_ALL*PARA_NU_AUXILIARY+PARA_N_LGL_ALL] = 100 * np.ones(PARA_N_LGL_ALL)

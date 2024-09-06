@@ -266,52 +266,148 @@ def plot_trajectory_comparison(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_
     plt.show()
 
 
-def plot_comparison_open(pic_folder, result_nomorphing, result_morphing, ref_trajectory):
-    x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
-    x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
+def plot_comparison_open_morphing(pic_folder, result_nomorphing, result_morphing, trajectory_ref, from_file = False):
+    if from_file:
+        pass
+    else:
+        x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
+        x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
+        np.savez(f'{pic_folder}\\data_nomorphing.npz', x_n=x_n, y_n=y_n, z_n=z_n, u_n=u_n, j_f_n=j_f_n,
+                 aero_info_n=aero_info_n)
+        np.savez(f'{pic_folder}\\data_morphing.npz', x_m=x_m, y_m=y_m, z_m=z_m, u_m=u_m, j_f_m=j_f_m,
+                 aero_info_m=aero_info_m)
+        np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
 
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
+    h_r = trajectory_ref['h_r_seq']
+    V_n = x_n[:, 0]
+    V_m = x_m[:, 0]
+    alpha_n = x_n[:, 1]
+    alpha_m = x_m[:, 1]
+    q_n = x_n[:, 2]
+    q_m = x_m[:, 2]
+    theta_n = x_n[:, 3]
+    theta_m = x_m[:, 3]
+    h_n = x_n[:, 4]
+    h_m = x_m[:, 4]
+    de_n = u_n[:, 0]
+    de_m = u_m[:, 0]
+    T_n = u_n[:, 1]
+    T_m = u_m[:, 1]
+    xi_n = u_n[:, 2]
+    xi_m = u_m[:, 2]
+    y1_n = y_n[:, 0]
+    y1_m = y_m[:, 0]
+    y2_n = y_n[:, 1]
+    y2_m = y_m[:, 1]
+
+    # Main Figure
+    plt.figure()
+    plt.title("Trajectory Comparison")
+    plt.plot(time_steps, np.column_stack((h_r, h_n, h_m)))
+    plt.ylim([200, 500])
+    plt.xlabel('t')
+    plt.ylabel('h')
+    plt.legend(['Reference Trajectory', 'No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_tra.png")
 
     plt.figure()
-    plt.title("Trajectory comparison")
+    plt.title("Tracking Error Comparison")
+    err_n = np.sqrt((h_n-h_r)**2)
+    err_m = np.sqrt((h_m-h_r)**2)
+    plt.plot(time_steps, np.column_stack((err_n, err_m)))
+    plt.xlabel('t')
+    plt.ylabel('RMSE of h')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_err.png")
 
     plt.figure()
-    plt.title("[Simulate] Trajectories")
-    plt.subplot(2,2,1)
-    plt.plot(time_steps, ref_trajectory['h_r_seq'])
-    plt.plot(time_steps, x_all)
-    plt.ylim([-100, 500])
-    # plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
-    plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h'])
-    plt.subplot(2,2,2)
-    plt.plot(time_steps, u_all)
-    plt.legend(['delta_e', 'delta_T', 'xi'])
-    plt.subplot(2,2,3)
-    plt.plot(time_steps, y_all)
-    plt.legend(['y12', 'y22'])
-    plt.subplot(2,2,4)
-    plt.plot(time_steps, z_all)
-    plt.legend('z')
-    # print('J final =' + str(j_f))
-    plt.savefig(pic_folder + "\\trajectory.png")
+    plt.title("Normalized Morphing Parameter Comparison")
+    plt.plot(time_steps, np.column_stack((xi_n, xi_m)))
+    plt.xlabel('t')
+    plt.ylabel(r'$\xi$')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_xi.png")
 
-    print(f"Final tracking error: {j_f[0]}")
-    print(f"Final cruise cost: {j_f[1]}")
-    print(f"Final aggressive cost: {j_f[2]}")
-
-    aero_forces_all, aero_deriv_all, angle_deg_all = aero_info
     plt.figure()
-    plt.title("[Simulate] AeroInfo")
-    plt.subplot(3, 1, 1)
-    plt.plot(time_steps, aero_forces_all)
-    plt.legend(['L', 'D', 'M'])
-    plt.subplot(3, 1, 2)
-    plt.plot(time_steps, aero_deriv_all)
-    plt.legend(['CL', 'CD', 'CM'])
-    plt.subplot(3, 1, 3)
-    plt.plot(time_steps, angle_deg_all)
-    plt.legend(['alpha', 'q', 'theta'])
+    plt.title("Normalized Subordinate Objectives")
+    plt.subplot(1,2,1)
+    plt.plot(time_steps, np.column_stack((y1_n, y1_m)))
+    plt.xlabel('t')
+    plt.ylabel('y_cruise')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.subplot(1,2,2)
+    plt.plot(time_steps, np.column_stack((y2_n, y2_m)))
+    plt.xlabel('t')
+    plt.ylabel('y_aggressive')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_y.png")
 
-    plt.savefig(pic_folder + "\\aeroinfo.png")
+    print("No Morphing: ")
+    print(f"Final tracking error: {j_f_n[0] * config_opc.PARA_ERROR_SCALE}")
+    print(f"Final cruise cost: {j_f_n[1]}")
+    print(f"Final aggressive cost: {j_f_n[2]}")
+    print("Morphing: ")
+    print(f"Final tracking error: {j_f_m[0] * config_opc.PARA_ERROR_SCALE}")
+    print(f"Final cruise cost: {j_f_m[1]}")
+    print(f"Final aggressive cost: {j_f_m[2]}")
+
+    # Auxiliary Figures
+    plt.figure()
+    plt.title("Other Trajectories")
+    plt.subplot(2,3,1)
+    plt.plot(time_steps, np.column_stack((V_n, V_m)))
+    plt.ylabel('V')
+    plt.subplot(2,3,2)
+    plt.plot(time_steps, np.column_stack((alpha_n, alpha_m)))
+    plt.ylabel('alpha')
+    plt.subplot(2,3,3)
+    plt.plot(time_steps, np.column_stack((q_n, q_m)))
+    plt.ylabel('q')
+    plt.subplot(2,3,4)
+    plt.plot(time_steps, np.column_stack((theta_n, theta_m)))
+    plt.ylabel('theta')
+    plt.subplot(2,3,5)
+    plt.plot(time_steps, np.column_stack((de_n, de_m)))
+    plt.ylabel('de')
+    plt.subplot(2,3,6)
+    plt.plot(time_steps, np.column_stack((T_n, T_m)))
+    plt.ylabel('T')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_others.png")
+
+    aero_forces_n, aero_deriv_n, angle_deg_n = aero_info_n
+    aero_forces_m, aero_deriv_m, angle_deg_m = aero_info_m
+    plt.figure()
+    plt.title("Aerodynamic Coefficients")
+    plt.subplot(3, 3, 1)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0], aero_forces_m[:, 0])))
+    plt.ylabel('L')
+    plt.subplot(3, 3, 2)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 1], aero_forces_m[:, 1])))
+    plt.ylabel('D')
+    plt.subplot(3, 3, 3)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 2], aero_forces_m[:, 2])))
+    plt.ylabel('M')
+    plt.subplot(3, 3, 4)
+    plt.plot(time_steps, np.column_stack((aero_deriv_n[:, 0], aero_deriv_m[:, 0])))
+    plt.ylabel('CL')
+    plt.subplot(3, 3, 5)
+    plt.plot(time_steps, np.column_stack((aero_deriv_n[:, 1], aero_deriv_m[:, 1])))
+    plt.ylabel('CD')
+    plt.subplot(3, 3, 6)
+    plt.plot(time_steps, np.column_stack((aero_deriv_n[:, 2], aero_deriv_m[:, 2])))
+    plt.ylabel('CM')
+    plt.subplot(3, 3, 7)
+    plt.plot(time_steps, np.column_stack((angle_deg_n[:, 0], angle_deg_m[:, 0])))
+    plt.ylabel('alpha')
+    plt.subplot(3, 3, 8)
+    plt.plot(time_steps, np.column_stack((angle_deg_n[:, 1], angle_deg_m[:, 1])))
+    plt.ylabel('q')
+    plt.subplot(3, 3, 9)
+    plt.plot(time_steps, np.column_stack((angle_deg_n[:, 2], angle_deg_m[:, 2])))
+    plt.ylabel('theta')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_aeroinfo.png")
 
     plt.show()

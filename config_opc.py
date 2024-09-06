@@ -71,6 +71,7 @@ PARA_U_UPPER_BOUND = np.array([15/180*np.pi, 100, 1.0])
 PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 0, 0.0])
 # Constant control
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
+PARA_FIX_XI = 0.5
 # PID control
 PARA_KP = np.array([0.0002, 0.15, 0.000])
 PARA_KI = np.array([0.00, 0.07, 0.0])

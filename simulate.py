@@ -235,4 +235,4 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
     j_f = dyn.cost_auxiliary_all(y_f=y_all[-1, :], z_f=z_all[-1, :], t_switch=t_switch)
 
     torch.set_grad_enabled(True)
-    return x_all, y_all, z_all, u_all, j_f, (aero_forces_all, aero_deriv_all, angle_deg_all)
+    return (x_all, y_all, z_all, u_all, j_f, (aero_forces_all, aero_deriv_all, angle_deg_all))
