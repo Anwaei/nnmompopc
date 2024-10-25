@@ -4,6 +4,7 @@ import time
 import os
 import config_opc
 import optimal as opt
+import dynamics2 as dyn
 
 def plot_trajectory_origin(x_all, u_all, j_all, ref_trajectory):
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
@@ -129,7 +130,7 @@ def plot_trajectory_interpolated(pic_folder, t, x, y, z, u, x_point, y_point, z_
     # plt.savefig("pics\\interpolated_"+cur_time+"\\xi_interpolated.png")
     plt.savefig(pic_folder + "\\interpolated.png")
 
-def plot_optimal_points(pic_folder, x_optimal, y_optimal, z_optimal, u_optimal):
+def plot_optimal_points(x_optimal, y_optimal, z_optimal, u_optimal):
     plt.figure()
     plt.subplot(2,2,1)
     plt.plot(x_optimal)
@@ -139,7 +140,7 @@ def plot_optimal_points(pic_folder, x_optimal, y_optimal, z_optimal, u_optimal):
     plt.plot(y_optimal)
     plt.subplot(2,2,4)
     plt.plot(z_optimal)
-    plt.savefig(pic_folder + "\\optimal_points.png")
+    # plt.savefig(pic_folder + "\\optimal_points.png")
     plt.show()
 
 def plot_nn_comparison(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_trajectory, aero_info, u_pred):
@@ -411,3 +412,455 @@ def plot_comparison_open_morphing(pic_folder, result_nomorphing, result_morphing
     plt.savefig(pic_folder + "\\cmp_open_morphing_aeroinfo.png")
 
     plt.show()
+
+
+def test_aerodynamic_coefficient():
+    alpha = np.arange(start=-10, step=0.1, stop=20)  # deg
+    alpha_rad = alpha/180*np.pi
+    delta_e = 0
+    CL_0 = np.zeros(shape=alpha.shape)
+    CD_0 = np.zeros(shape=alpha.shape)
+    CM_0 = np.zeros(shape=alpha.shape)
+    CL_1 = np.zeros(shape=alpha.shape)
+    CD_1 = np.zeros(shape=alpha.shape)
+    CM_1 = np.zeros(shape=alpha.shape)
+    CL_2 = np.zeros(shape=alpha.shape)
+    CD_2 = np.zeros(shape=alpha.shape)
+    CM_2 = np.zeros(shape=alpha.shape)
+    for i in range(alpha.size):
+        CL_0[i] = dyn.aerodynamic_coefficient_lift(alpha=alpha_rad[i], xi=0, delta_e=delta_e)
+        CD_0[i] = dyn.aerodynamic_coefficient_drag(alpha=alpha_rad[i], xi=0)
+        CM_0[i] = dyn.aerodynamic_coefficient_pitch_moment(alpha=alpha_rad[i], xi=0, delta_e=delta_e)
+        CL_1[i] = dyn.aerodynamic_coefficient_lift(alpha=alpha_rad[i], xi=0.5, delta_e=delta_e)
+        CD_1[i] = dyn.aerodynamic_coefficient_drag(alpha=alpha_rad[i], xi=0.5)
+        CM_1[i] = dyn.aerodynamic_coefficient_pitch_moment(alpha=alpha_rad[i], xi=0.5, delta_e=delta_e)
+        CL_2[i] = dyn.aerodynamic_coefficient_lift(alpha=alpha_rad[i], xi=1, delta_e=delta_e)
+        CD_2[i] = dyn.aerodynamic_coefficient_drag(alpha=alpha_rad[i], xi=1)
+        CM_2[i] = dyn.aerodynamic_coefficient_pitch_moment(alpha=alpha_rad[i], xi=1, delta_e=delta_e)
+    
+    plt.figure()
+    plt.subplot(3,3,1)
+    plt.plot(alpha, CL_0)
+    plt.xlabel("alpha")
+    plt.ylabel("CL")
+    plt.legend(["xi=0"])
+    plt.subplot(3,3,4)
+    plt.plot(alpha, CD_0)
+    plt.xlabel("alpha")
+    plt.ylabel("CD")
+    plt.legend(["xi=0"])
+    plt.subplot(3,3,7)
+    plt.plot(alpha, CM_0)
+    plt.xlabel("alpha")
+    plt.ylabel("CM")
+    plt.legend(["xi=0"])
+
+    plt.subplot(3,3,2)
+    plt.plot(alpha, CL_1)
+    plt.xlabel("alpha")
+    plt.ylabel("CL")
+    plt.legend(["xi=0.5"])
+    plt.subplot(3,3,5)
+    plt.plot(alpha, CD_1)
+    plt.xlabel("alpha")
+    plt.ylabel("CD")
+    plt.legend(["xi=0.5"])
+    plt.subplot(3,3,8)
+    plt.plot(alpha, CM_1)
+    plt.xlabel("alpha")
+    plt.ylabel("CM")
+    plt.legend(["xi=0.5"])
+
+    plt.subplot(3,3,3)
+    plt.plot(alpha, CL_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CL")
+    plt.legend(["xi=1"])
+    plt.subplot(3,3,6)
+    plt.plot(alpha, CD_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CD")
+    plt.legend(["xi=1"])
+    plt.subplot(3,3,9)
+    plt.plot(alpha, CM_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CM")
+    plt.legend(["xi=1"])
+
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(alpha, CL_0)
+    plt.plot(alpha, CL_1)
+    plt.plot(alpha, CL_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CL")
+    plt.legend([r"$\xi=0$", r"$\xi=0.5$", r"$\xi=1$"])
+    plt.subplot(2,2,2)
+    plt.plot(alpha, CD_0)
+    plt.plot(alpha, CD_1)
+    plt.plot(alpha, CD_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CD")
+    plt.legend([r"$\xi=0$", r"$\xi=0.5$", r"$\xi=1$"])
+    plt.subplot(2,2,3)
+    plt.plot(alpha, CM_0)
+    plt.plot(alpha, CM_1)
+    plt.plot(alpha, CM_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CM")
+    plt.legend([r"$\xi=0$", r"$\xi=0.5$", r"$\xi=1$"])
+    plt.subplot(2,2,4)
+    plt.plot(alpha, CL_0/CD_0)
+    plt.plot(alpha, CL_1/CD_1)
+    plt.plot(alpha, CL_2/CD_2)
+    plt.xlabel("alpha")
+    plt.ylabel("CL/CD")
+    plt.legend([r"$\xi=0$", r"$\xi=0.5$", r"$\xi=1$"])
+    
+    plt.show()
+
+
+def test_collect_points(N=8):
+    LGL_points = opt.calculate_LGL_points(N)
+    LGR_points = opt.calculate_LGR_points(N)
+    print("LGL_points:")
+    print(LGL_points)
+    print("LGR_points:")
+    print(LGR_points)
+
+    plt.figure(1)
+    plt.scatter(LGL_points, np.zeros(N))
+    plt.scatter(LGR_points, np.ones(N))
+    plt.ylim([-4, 5])
+    plt.legend(['LGL points', 'LGR points'])
+    plt.title("Collection Points")
+
+    dt = 0.001
+    tau = np.arange(start=-1, step=dt, stop=1)
+
+    # ===================================================================== #
+    # ===================================================================== #
+    # Lagrange Polynomians for LGL points
+    plt.figure(2)
+    plt.title("Lagrange Polynomians for LGL points")
+    L = np.ones((N, tau.size))
+    L_point = np.ones((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for k in range(N):
+                if k != i:
+                    L[i, t] *= (tau[t]-LGL_points[k])/(LGL_points[i]-LGL_points[k])# L_i(tau) = Pi(k=0-N, k not i) ((x-x_k)/(x_i-x_k))
+        for j in range(N):
+            for k in range(N):
+                if k != i:
+                    L_point[i, j] *= (LGL_points[j]-LGL_points[k])/(LGL_points[i]-LGL_points[k])
+    for i in range(N):
+        plt.plot(tau, L[i, :], label=f'L_{i}')
+        plt.scatter(LGL_points, L_point[i, :])
+    plt.legend()
+    plt.xlabel('tau')
+
+    plt.figure(3)
+    plt.title("Lagrange Differential for LGL points")
+    
+    # Numerical Differential for LGL points
+    plt.subplot(2,2,1)
+    plt.title("Numerical Differential")
+    Ld_num = np.zeros((N, tau.size))
+    Ld_num_point = np.zeros((N, N))
+    for i in range(N):
+        pi = 0
+        for t in range(tau.size-1):
+            Ld_num[i, t] = (L[i, t+1] - L[i, t])/dt
+            if abs(LGL_points[pi] - tau[t]) <= dt/2 or t == tau.size-2:
+                Ld_num_point[i, pi] = Ld_num[i, t]
+                pi = pi + 1
+    for i in range(N):
+        plt.plot(tau[0:-1], Ld_num[i, 0:-1], label=f'Ld_{i}')
+        plt.scatter(LGL_points, Ld_num_point[i, :])
+    plt.legend()
+
+    # Formula 2
+    plt.subplot(2,2,2)   
+    plt.title("Formula 2")
+    Ld_2 = np.zeros((N, tau.size))
+    Ld_2_point = np.zeros((N, N))
+    # Realization of formula 3
+    # for i in range(N):
+    #     for t in range(tau.size-1):
+    #         sum = 0
+    #         for k in range(N):
+    #             if k != i:
+    #                 sum += 1/(tau[t]-LGL_points[k])
+    #         Ld_2[i, t] = L[i, t] * sum
+    #     for j in range(N):
+    #         sum = 0
+    #         for k in range(N):
+    #             if k != i:
+    #                 sum += 1/(LGL_points[j]-LGL_points[k])
+    #         Ld_2_point[i, j] = L_point[i, j] * sum
+    for i in range(N):
+        for t in range(tau.size):
+            num = 0
+            den = 1
+            for k in range(N):
+                temp = 1
+                for l in range(N):
+                    if l != k:
+                        temp *= (tau[t] - LGL_points[l])
+                num += temp
+            for k in range(N):
+                if k != i:
+                    den *= (LGL_points[i] - LGL_points[k])
+            Ld_2[i, t] = num/den
+        for j in range(N):
+            num = 0
+            den = 1
+            for k in range(N):
+                temp = 1
+                for l in range(N):
+                    if l != k:
+                        temp *= (LGL_points[j] - LGL_points[l])
+                num += temp
+            for k in range(N):
+                if k != i:
+                    den *= (LGL_points[i] - LGL_points[k])
+            Ld_2_point[i, j] = num/den
+    for i in range(N):
+        plt.plot(tau, Ld_2[i, :], label=f'Ld_{i}')
+        plt.scatter(LGL_points, Ld_2_point[i, :])
+    plt.legend()            
+    
+    # Formula 4
+    plt.subplot(2,2,3)
+    plt.title("Formula 4")
+    # Ld_4 = Ld_num.copy()
+    Ld_4 = np.zeros((N, tau.size))
+    Ld_4_point = np.zeros((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (tau[t]-LGL_points[l])/(LGL_points[i]-LGL_points[l])                        
+                    Ld_4[i, t] += 1/(LGL_points[i]-LGL_points[j]) * temp
+        for k in range(N):
+            Dki = 0
+            if i == k:
+                for j in range(N):
+                    if j != i:
+                        Dki += 1/(LGL_points[i]-LGL_points[j])
+            else:
+                num = 1
+                for j in range(N):
+                    if j != i and j != k:
+                        num *= LGL_points[k] - LGL_points[j]
+                den = 1
+                for j in range(N):
+                    if j != i :
+                        den *= LGL_points[i] - LGL_points[j]
+                Dki = num/den
+            Ld_4_point[i, k] = Dki        
+    for i in range(N):
+        plt.plot(tau, Ld_4[i, :], label=f'Ld_{i}')
+        plt.scatter(LGL_points, Ld_4_point[i, :])
+    plt.legend()   
+
+    # Formula 4 (dyn2)
+    plt.subplot(2,2,4)   
+    plt.title("Formula 4 (dyn2)")
+    # Ld_3 = Ld_num.copy()
+    Ld_3 = np.zeros((N, tau.size))
+    Ld_3_point = np.zeros((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (tau[t]-LGL_points[l])/(LGL_points[i]-LGL_points[l])                        
+                    Ld_3[i, t] += 1/(LGL_points[i]-LGL_points[j]) * temp
+        for k in range(N):
+            Dki = 0
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (LGL_points[k]-LGL_points[l])/(LGL_points[i]-LGL_points[l])                        
+                    Dki += 1/(LGL_points[i]-LGL_points[j]) * temp
+            Ld_3_point[i, k] = Dki        
+    for i in range(N):
+        plt.plot(tau, Ld_3[i, :], label=f'Ld_{i}')
+        plt.scatter(LGL_points, Ld_3_point[i, :])
+    plt.legend()              
+
+    # ===================================================================== #
+    # ===================================================================== #
+    # Lagrange Polynomians for LGR points
+    plt.figure(4)
+    plt.title("Lagrange Polynomians for LGR points")
+    L = np.ones((N, tau.size))
+    L_point = np.ones((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for k in range(N):
+                if k != i:
+                    L[i, t] *= (tau[t]-LGR_points[k])/(LGR_points[i]-LGR_points[k])# L_i(tau) = Pi(k=0-N, k not i) ((x-x_k)/(x_i-x_k))
+        for j in range(N):
+            for k in range(N):
+                if k != i:
+                    L_point[i, j] *= (LGR_points[j]-LGR_points[k])/(LGR_points[i]-LGR_points[k])
+    for i in range(N):
+        plt.plot(tau, L[i, :], label=f'L_{i}')
+        plt.scatter(LGR_points, L_point[i, :])
+    plt.legend()
+    plt.xlabel('tau')
+
+    plt.figure(5)
+    plt.title("Lagrange Differential for LGR points")
+    
+    # Numerical Differential for LGR points
+    plt.subplot(2,2,1)
+    plt.title("Numerical Differential")
+    Ld_num = np.zeros((N, tau.size))
+    Ld_num_point = np.zeros((N, N))
+    for i in range(N):
+        pi = 0
+        for t in range(tau.size-1):
+            Ld_num[i, t] = (L[i, t+1] - L[i, t])/dt
+            if pi<N and abs(LGR_points[pi] - tau[t]) <= dt/2:
+                Ld_num_point[i, pi] = Ld_num[i, t]
+                pi = pi + 1
+    for i in range(N):
+        plt.plot(tau[0:-1], Ld_num[i, 0:-1], label=f'Ld_{i}')
+        plt.scatter(LGR_points, Ld_num_point[i, :])
+    plt.legend()
+
+    # Formula 2
+    plt.subplot(2,2,2)   
+    plt.title("Formula 2")
+    Ld_2 = np.zeros((N, tau.size))
+    Ld_2_point = np.zeros((N, N))
+    # Realization of formula 3
+    # for i in range(N):
+    #     for t in range(tau.size-1):
+    #         sum = 0
+    #         for k in range(N):
+    #             if k != i:
+    #                 sum += 1/(tau[t]-LGR_points[k])
+    #         Ld_2[i, t] = L[i, t] * sum
+    #     for j in range(N):
+    #         sum = 0
+    #         for k in range(N):
+    #             if k != i:
+    #                 sum += 1/(LGR_points[j]-LGR_points[k])
+    #         Ld_2_point[i, j] = L_point[i, j] * sum
+    for i in range(N):
+        for t in range(tau.size):
+            num = 0
+            den = 1
+            for k in range(N):
+                temp = 1
+                for l in range(N):
+                    if l != k:
+                        temp *= (tau[t] - LGR_points[l])
+                num += temp
+            for k in range(N):
+                if k != i:
+                    den *= (LGR_points[i] - LGR_points[k])
+            Ld_2[i, t] = num/den
+        for j in range(N):
+            num = 0
+            den = 1
+            for k in range(N):
+                temp = 1
+                for l in range(N):
+                    if l != k:
+                        temp *= (LGR_points[j] - LGR_points[l])
+                num += temp
+            for k in range(N):
+                if k != i:
+                    den *= (LGR_points[i] - LGR_points[k])
+            Ld_2_point[i, j] = num/den
+    for i in range(N):
+        plt.plot(tau, Ld_2[i, :], label=f'Ld_{i}')
+        plt.scatter(LGR_points, Ld_2_point[i, :])
+    plt.legend()
+    
+    # Formula 4
+    plt.subplot(2,2,3)
+    plt.title("Formula 4")
+    # Ld_4 = Ld_num.copy()
+    Ld_4 = np.zeros((N, tau.size))
+    Ld_4_point = np.zeros((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (tau[t]-LGR_points[l])/(LGR_points[i]-LGR_points[l])                        
+                    Ld_4[i, t] += 1/(LGR_points[i]-LGR_points[j]) * temp
+        for k in range(N):
+            Dki = 0
+            if i == k:
+                for j in range(N):
+                    if j != i:
+                        Dki += 1/(LGR_points[i]-LGR_points[j])
+            else:
+                num = 1
+                for j in range(N):
+                    if j != i and j != k:
+                        num *= LGR_points[k] - LGR_points[j]
+                den = 1
+                for j in range(N):
+                    if j != i :
+                        den *= LGR_points[i] - LGR_points[j]
+                Dki = num/den
+            Ld_4_point[i, k] = Dki        
+    for i in range(N):
+        plt.plot(tau, Ld_4[i, :], label=f'Ld_{i}')
+        plt.scatter(LGR_points, Ld_4_point[i, :])
+    plt.legend()   
+
+    # Formula 4 (dyn2)
+    plt.subplot(2,2,4)   
+    plt.title("Formula 4 (dyn2)")
+    # Ld_3 = Ld_num.copy()
+    Ld_3 = np.zeros((N, tau.size))
+    Ld_3_point = np.zeros((N, N))
+    for i in range(N):
+        for t in range(tau.size):
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (tau[t]-LGR_points[l])/(LGR_points[i]-LGR_points[l])                        
+                    Ld_3[i, t] += 1/(LGR_points[i]-LGR_points[j]) * temp
+        for k in range(N):
+            Dki = 0
+            for j in range(N):
+                if j != i:
+                    temp = 1
+                    for l in range(N):
+                        if l!=i and l!=j:
+                            temp *= (LGR_points[k]-LGR_points[l])/(LGR_points[i]-LGR_points[l])                        
+                    Dki += 1/(LGR_points[i]-LGR_points[j]) * temp
+            Ld_3_point[i, k] = Dki        
+    for i in range(N):
+        plt.plot(tau, Ld_3[i, :], label=f'Ld_{i}')
+        plt.scatter(LGR_points, Ld_3_point[i, :])
+    plt.legend()
+
+    plt.show()
+
+
+if __name__ == "__main__":
+    # test_aerodynamic_coefficient()
+    test_collect_points(6)

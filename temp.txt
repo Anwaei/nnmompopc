@@ -1,0 +1,7 @@
+def calculate_LGR_indexes(LGR_points, t_switch):
+    LGR_time_1 = t_switch/2*LGR_points + t_switch/2
+    LGR_time_2 = (PARA_TF-t_switch)/2*LGR_points + (PARA_TF+t_switch)/2
+    LGR_time = np.concatenate((LGR_time_1, LGR_time_2))
+    LGR_indexes_float = LGR_time/PARA_DT
+    LGR_indexes = LGR_indexes_float.astype(int).tolist()    
+    return LGR_indexes, LGR_time

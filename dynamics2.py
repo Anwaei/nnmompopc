@@ -144,6 +144,19 @@ def dynamic_origin_one_step(x, u):
 
     return new_x
 
+def dynamic_origin_one_step_runge_kutta(x, u):
+    dt = config_opc.PARA_DT
+    k1 = dynamic_function(x, u)
+    x2 = x + k1*dt/2
+    k2 = dynamic_function(x2, u)
+    x3 = x + k2*dt/2
+    k3 = dynamic_function(x3, u)
+    x4 = x + k3*dt
+    k4 = dynamic_function(x4, u)
+    new_x = x + (k1 + 2*k2 + 2*k3 + k4)/6 * dt
+
+    return new_x
+
 
 def cost_tracking_error(h, h_r):
     return (h - h_r)**2 / config_opc.PARA_ERROR_SCALE
@@ -227,7 +240,7 @@ def dynamic_auxiliary_one_step(x, y, z, x_r, u, t, t_switch):
     # y1d = cost_origin_aggressive(x, u, x_r)[1] if t < t_switch else 0
     y1d = cost_origin_cruise(x, u, x_r)[1] if t < t_switch else 0
     y2d = cost_origin_aggressive(x, u, x_r)[1] if t >= t_switch else 0
-    zd = -cost_tracking_error(x[-1], x_r)
+    zd = cost_tracking_error(x[-1], x_r)
     new_y = y + config_opc.PARA_DT * np.array([y1d, y2d])
     new_z = z + config_opc.PARA_DT * zd
     return new_x, new_y, new_z
@@ -249,6 +262,6 @@ def cost_auxiliary_all(y_f, z_f, t_switch):
     t2 = config_opc.PARA_TF - t_switch
     g12 = y12f - t1 * config_opc.PARA_EPI12
     g22 = -y22f + t2 * config_opc.PARA_EPI22
-    return np.array([-z_f[0], g12, g22])
+    return np.array([z_f[0], g12, g22])
 
 

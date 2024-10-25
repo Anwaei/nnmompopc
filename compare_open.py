@@ -22,14 +22,15 @@ if __name__ == '__main__':
 
     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0,
                                                                                             trajectory_ref=tra_ref,
-                                                                                            morphing_disabled=True)
+                                                                                            morphing_disabled=0.5)
     t, x, y, z, u_n = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal,
                                                        t_switch=tra_ref["t_switch"])
     results_n = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given",
                                         given_input=u_n)
 
     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0,
-                                                                                            trajectory_ref=tra_ref)
+                                                                                            trajectory_ref=tra_ref,
+                                                                                            morphing_disabled=None)
     t, x, y, z, u_m = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal,
                                                        t_switch=tra_ref["t_switch"])
     results_m = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given",
