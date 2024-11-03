@@ -590,7 +590,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
         fy_matrix_1[m] = x_aggre_matrix[m, 0] * u_aggre_matrix[m, 1] / PARA_PC_NORM
     fy_matrix_1 *= t_switch/2
     eq_cons_array[PARA_INDEXES_CONS[2]:PARA_INDEXES_CONS[2]+PARA_N_LGL_AGGRE] = diff_mat @ y_aggre_matrix[:, 0] - fy_matrix_1
-    eq_cons_array[PARA_INDEXES_CONS[2]+PARA_N_LGL_AGGRE:PARA_INDEXES_CONS[3]] = y_aggre_matrix[:, 1]
+    # eq_cons_array[PARA_INDEXES_CONS[2]+PARA_N_LGL_AGGRE:PARA_INDEXES_CONS[3]] = y_aggre_matrix[:, 1]
 
     fy_matrix_2 = casadi.MX.zeros((PARA_N_LGL_CRUISE, 1))
     for m in range(PARA_N_LGL_CRUISE):
@@ -601,7 +601,7 @@ def function_constraint_casadi(X, t_switch, h_ref_lgl, diff_mat, x0):
         fy_matrix_2[m] = pa_norm_norm
         # fy_matrix_2[m] = x_cruise_matrix[m, 0] * u_cruise_matrix[m, 1] / PARA_PC_NORM
     fy_matrix_2 *= t_switch/2
-    eq_cons_array[PARA_INDEXES_CONS[3]:PARA_INDEXES_CONS[3]+PARA_N_LGL_AGGRE] = y_cruise_matrix[:, 0] - y_aggre_matrix[-1, 0]
+    # eq_cons_array[PARA_INDEXES_CONS[3]:PARA_INDEXES_CONS[3]+PARA_N_LGL_AGGRE] = y_cruise_matrix[:, 0] - y_aggre_matrix[-1, 0]
     eq_cons_array[PARA_INDEXES_CONS[3]+PARA_N_LGL_AGGRE:PARA_INDEXES_CONS[4]] = diff_mat @ y_cruise_matrix[:, 1] - fy_matrix_2
 
 
@@ -680,7 +680,7 @@ def generate_PS_solution_casadi(x0, trajectory_ref, morphing_disabled=None):
     opts["expand"] = True
 
     # opts["ipopt.max_iter"] = 100
-    opts["ipopt.acceptable_tol"] = 1e-5
+    opts["ipopt.acceptable_tol"] = 1e-6
     # opts["ipopt.linear_solver"] = 'ma27'
     # opts["verbose"] = False
     solver = casadi.nlpsol('S', 'ipopt', nlp, opts)
