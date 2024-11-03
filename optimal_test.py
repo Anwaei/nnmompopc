@@ -25,7 +25,7 @@ PARA_KI = 0
 PARA_KD = 1
 PARA_KB = 0
 
-N_LGL = 10
+N_LGL = 35
 
 def control_origin_PID(ep, ei, ed):
     u = PARA_KB + PARA_KP * ep + PARA_KI * ei + PARA_KD * ed
@@ -365,18 +365,18 @@ if __name__ == "__main__":
     lbg = np.zeros(dim_constraint)
     ubg = np.zeros(dim_constraint)
 
-    # nlp = {'x':V, 'f':J, 'g':g}
-    # opts = {}
-    # opts["expand"] = True
-    # #opts["ipopt.max_iter"] = 4
-    # # opts["ipopt.linear_solver"] = 'ma27'
-    # solver = casadi.nlpsol('S', 'ipopt', nlp, opts)
-    # res = solver(x0=Xinitial, lbg=lbg, ubg=ubg)
-    # print("optimal cost: ", float(res["f"]))
-    # v_opt = np.array(res["x"])
-    # x_optimal, z_optimal, y_optimal, u_optimal = unzip_variable(v_opt)
-    # j_optimal = np.array(res["f"])
-    # plot_optimal_trajectory(v_opt, j_optimal, h_r, [x_init, z_init, u_init, y_init, j_init])
+    nlp = {'x':V, 'f':J, 'g':g}
+    opts = {}
+    opts["expand"] = True
+    #opts["ipopt.max_iter"] = 4
+    # opts["ipopt.linear_solver"] = 'ma27'
+    solver = casadi.nlpsol('S', 'ipopt', nlp, opts)
+    res = solver(x0=Xinitial, lbg=lbg, ubg=ubg)
+    print("optimal cost: ", float(res["f"]))
+    v_opt = np.array(res["x"])
+    x_optimal, z_optimal, y_optimal, u_optimal = unzip_variable(v_opt)
+    j_optimal = np.array(res["f"])
+    plot_optimal_trajectory(v_opt, j_optimal, h_r, [x_init, z_init, u_init, y_init, j_init])
 
 
     # fun_obj = function_objective
@@ -408,8 +408,8 @@ if __name__ == "__main__":
     # opt = minimize(fun=obj, x0=x0t, constraints=constraints, method='SLSQP', callback=cb, options={'disp': True, 'iprint': 2})
     # print(f'opt x: {opt.x}, opt cost: {opt.fun}')
 
-    ajac = np.load("data/ajac.npz")["arr_0"]
-    rows = ajac.shape[0]
-    _, inds = sympy.Matrix(ajac).T.rref()
+    # ajac = np.load("data/ajac.npz")["arr_0"]
+    # rows = ajac.shape[0]
+    # _, inds = sympy.Matrix(ajac).T.rref()
 
     pass

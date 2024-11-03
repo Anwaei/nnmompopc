@@ -323,6 +323,13 @@ def plot_comparison_open_morphing(pic_folder, result_nomorphing, result_morphing
     plt.savefig(pic_folder + "\\cmp_open_morphing_err.png")
 
     plt.figure()
+    plt.title("Normalized Major Objectives")
+    plt.plot(time_steps, np.column_stack((z_n, z_m)))
+    plt.xlabel('t')
+    plt.ylabel('z')
+    plt.legend(['No Morphing', 'Morphing'])
+
+    plt.figure()
     plt.title("Normalized Morphing Parameter Comparison")
     plt.plot(time_steps, np.column_stack((xi_n, xi_m)))
     plt.xlabel('t')

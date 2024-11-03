@@ -30,7 +30,7 @@ def aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e):
     # delta_e_deg = delta_e / np.pi * 180
     alpha_deg = rad2deg(alpha)
     delta_e_deg = rad2deg(delta_e)
-    M = aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
+    # M = aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
     return aerodynamic_derivative(xi, key='M0') + aerodynamic_derivative(xi, key='Malpha') * alpha_deg + config_opc.PARA_CMdeltae * delta_e_deg
 
 def aerodynamic_derivatives(x, u):
@@ -88,6 +88,7 @@ def dynamic_function(x, u):
                    M / Jy,
                    q,
                    V * np.sin(theta-alpha)])
+    
     return dx
 
 
