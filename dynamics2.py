@@ -54,10 +54,17 @@ def aerodynamic_forces(x, u):
     delta_T = u[1]
     xi = u[2]
 
+    # Delay xi
+    # xi_a = x[5]
+    xi_a = xi
+
     aero_temp = 1 / 2 * config_opc.PARA_rho * (V**2) * config_opc.PARA_S
-    L = aero_temp * aerodynamic_coefficient_lift(alpha, xi, delta_e)
-    D = aero_temp * aerodynamic_coefficient_drag(alpha, xi)
-    M = aero_temp * config_opc.PARA_cbar * aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e)
+    # L = aero_temp * aerodynamic_coefficient_lift(alpha, xi, delta_e)
+    # D = aero_temp * aerodynamic_coefficient_drag(alpha, xi)
+    # M = aero_temp * config_opc.PARA_cbar * aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e)
+    L = aero_temp * aerodynamic_coefficient_lift(alpha, xi_a, delta_e)
+    D = aero_temp * aerodynamic_coefficient_drag(alpha, xi_a)
+    M = aero_temp * config_opc.PARA_cbar * aerodynamic_coefficient_pitch_moment(alpha, xi_a, delta_e)
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
     #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
     T = delta_T
@@ -77,17 +84,23 @@ def dynamic_function(x, u):
     delta_T = u[1]
     xi = u[2]
 
+     # Delay xi
+    xi_a = x[5]
+    tau_xi = config_opc.PARA_tau_xi
+    K_xi = config_opc.PARA_K_xi
+
     L, D, M, T = aerodynamic_forces(x, u)
     m = config_opc.PARA_m
     # Jy = config_opc.PARA_Jy
-    Jy = config_opc.PARA_J0+config_opc.PARA_J1*xi
+    Jy = config_opc.PARA_J0+config_opc.PARA_J1*xi_a
     g = config_opc.PARA_g
 
     dx = np.array([1 / m * (T * np.cos(alpha) - D - m * g * np.sin(theta-alpha)),
                    q - 1 / (m * V) * (T * np.sin(alpha) + L) + g * np.cos(theta-alpha) / V,
                    M / Jy,
                    q,
-                   V * np.sin(theta-alpha)])
+                   V * np.sin(theta-alpha),
+                   -1/tau_xi*xi_a + K_xi/tau_xi*xi])
     
     return dx
 
@@ -124,17 +137,24 @@ def dynamic_function_casadi(x, u):
     delta_T = u[1]
     xi = u[2]
 
+    # Delay xi
+    xi_a = x[5]
+    tau_xi = config_opc.PARA_tau_xi
+    K_xi = config_opc.PARA_K_xi
+
     L, D, M, T = aerodynamic_forces(x, u)
     m = config_opc.PARA_m
     # Jy = config_opc.PARA_Jy
-    Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi
+    # Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi
+    Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi_a
     g = config_opc.PARA_g
 
     dx = casadi.vertcat(1 / m * (T * casadi.cos(alpha) - D - m * g * casadi.sin(theta-alpha)),
                         q - 1 / (m * V) * (T * casadi.sin(alpha) + L) + g * casadi.cos(theta-alpha) / V,
                         M / Jy,
                         q,
-                        V * casadi.sin(theta-alpha))
+                        V * casadi.sin(theta-alpha),
+                        -1/tau_xi*xi_a + K_xi/tau_xi*xi)
     return dx
 
 
@@ -165,7 +185,7 @@ def cost_tracking_error(h, h_r):
 
 def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
     # V, gamma, q, alpha, h = x
-    V, alpha, q, theta, h = x
+    V, alpha, q, theta, h, xi_a = x
     delta_e, delta_T, xi = u
 
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
@@ -178,7 +198,7 @@ def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
 
 
 def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
-    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h, xi_a = x[0], x[1], x[2], x[3], x[4]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
@@ -191,7 +211,7 @@ def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
 
 
 def cost_origin_aggressive(x, u, h_r):
-    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h, xi_a = x[0], x[1], x[2], x[3], x[4], x[5]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     L, D, M, _ = aerodynamic_forces(x, u)
@@ -208,7 +228,7 @@ def cost_origin_aggressive(x, u, h_r):
 
 
 def cost_origin_aggressive_casadi(x, u, h_r):
-    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
+    V, alpha, q, theta, h, xi_a = x[0], x[1], x[2], x[3], x[4], x[5]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     L, D, M, _ = aerodynamic_forces(x, u)

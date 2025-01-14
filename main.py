@@ -21,7 +21,7 @@ if __name__ == '__main__':
     pic_folder_pid = "pics\\pid_"+cur_time
     if not os.path.exists(pic_folder_pid):
          os.mkdir(pic_folder_pid)
-#     pu.plot_trajectory_auxiliary(pic_folder_pid, x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, tra_ref, aero_info)
+    pu.plot_trajectory_auxiliary(pic_folder_pid, x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, tra_ref, aero_info)
 #     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
 #     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi_LGR(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)

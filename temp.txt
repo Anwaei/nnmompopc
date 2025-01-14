@@ -1,7 +1,6 @@
-def calculate_LGR_indexes(LGR_points, t_switch):
-    LGR_time_1 = t_switch/2*LGR_points + t_switch/2
-    LGR_time_2 = (PARA_TF-t_switch)/2*LGR_points + (PARA_TF+t_switch)/2
-    LGR_time = np.concatenate((LGR_time_1, LGR_time_2))
-    LGR_indexes_float = LGR_time/PARA_DT
-    LGR_indexes = LGR_indexes_float.astype(int).tolist()    
-    return LGR_indexes, LGR_time
+        with np.load(f'{file_folder}\\data_nomorphing.npz') as data_nomorphing:
+            keys = ['x_n_b', 'y_n_b', 'z_n_b', 'u_n_b', 'j_f_n_b', 'aero_info_n_b']
+            x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = [data_nomorphing[key] for key in keys]
+        with np.load(f'{file_folder}\\data_morphing.npz') as data_morphing:
+            keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
+            x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = [data_morphing[key] for key in keys]
