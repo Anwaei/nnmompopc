@@ -85,7 +85,8 @@ def dynamic_function(x, u):
     xi = u[2]
 
      # Delay xi
-    xi_a = x[5]
+    # xi_a = x[5]
+    xi_a = xi
     tau_xi = config_opc.PARA_tau_xi
     K_xi = config_opc.PARA_K_xi
 
@@ -99,11 +100,74 @@ def dynamic_function(x, u):
                    q - 1 / (m * V) * (T * np.sin(alpha) + L) + g * np.cos(theta-alpha) / V,
                    M / Jy,
                    q,
-                   V * np.sin(theta-alpha),
-                   -1/tau_xi*xi_a + K_xi/tau_xi*xi])
+                   V * np.sin(theta-alpha)])
+                #    -1/tau_xi*xi_a + K_xi/tau_xi*xi])
     
     return dx
 
+def scale_state(re_state, mean, var):
+    return (re_state-mean)/var
+
+def re_state(scaled_state, mean, var):
+    return scaled_state*var+mean
+
+def aerodynamic_forces_scaled(x, u):
+    # V, gamma, q, alpha, h = x
+    # delta_e, delta_T, xi = u
+    V = re_state(x[0], config_opc.SCALE_MEAN_V, config_opc.SCALE_VAR_V)
+    alpha = x[1]
+    q = x[2]
+    theta = x[3]
+    h = x[4]
+    delta_e = u[0]
+    delta_T = re_state(u[1], config_opc.SCALE_MEAN_T, config_opc.SCALE_VAR_T)
+    xi = u[2]
+
+    # Delay xi
+    # xi_a = x[5]
+    xi_a = xi
+
+    aero_temp = 1 / 2 * config_opc.PARA_rho * (V**2) * config_opc.PARA_S
+    # L = aero_temp * aerodynamic_coefficient_lift(alpha, xi, delta_e)
+    # D = aero_temp * aerodynamic_coefficient_drag(alpha, xi)
+    # M = aero_temp * config_opc.PARA_cbar * aerodynamic_coefficient_pitch_moment(alpha, xi, delta_e)
+    L = aero_temp * aerodynamic_coefficient_lift(alpha, xi_a, delta_e)
+    D = aero_temp * aerodynamic_coefficient_drag(alpha, xi_a)
+    M = aero_temp * config_opc.PARA_cbar * aerodynamic_coefficient_pitch_moment(alpha, xi_a, delta_e)
+    # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
+    #             (config_opc.PARA_Kmotor * delta_T)**2 - V**2)
+    T = delta_T
+
+    return L, D, M, T
+
+def dynamic_function_scaled(x, u):
+    V = re_state(x[0], config_opc.SCALE_MEAN_V, config_opc.SCALE_VAR_V)
+    alpha = x[1]
+    q = x[2]
+    theta = x[3]
+    h = re_state(x[4], config_opc.SCALE_MEAN_H, config_opc.SCALE_VAR_H)
+    delta_e = u[0]
+    delta_T = re_state(u[1], config_opc.SCALE_MEAN_T, config_opc.SCALE_VAR_T)
+    xi = u[2]
+
+     # Delay xi
+    # xi_a = x[5]
+    # tau_xi = config_opc.PARA_tau_xi
+    # K_xi = config_opc.PARA_K_xi
+
+    L, D, M, T = aerodynamic_forces_scaled(x, u)
+    m = config_opc.PARA_m
+    # Jy = config_opc.PARA_Jy
+    Jy = config_opc.PARA_J0+config_opc.PARA_J1*xi
+    g = config_opc.PARA_g
+
+    dx = np.array([(1 / m * (T * np.cos(alpha) - D - m * g * np.sin(theta-alpha)))/config_opc.SCALE_VAR_V,
+                   q - 1 / (m * V) * (T * np.sin(alpha) + L) + g * np.cos(theta-alpha) / V,
+                   M / Jy,
+                   q,
+                   (V * np.sin(theta-alpha))/config_opc.SCALE_VAR_H])
+    
+    return dx
 
 # def dynamic_function_casadi(x, u):
 #     V = x[0]
@@ -182,10 +246,13 @@ def dynamic_origin_one_step_runge_kutta(x, u):
 def cost_tracking_error(h, h_r):
     return (h - h_r)**2 / config_opc.PARA_ERROR_SCALE
 
+def cost_tracking_error_scaled(h, h_r):
+    return (h - (h_r-config_opc.SCALE_MEAN_H)/config_opc.SCALE_VAR_H)**2 / config_opc.PARA_ERROR_SCALE
+
 
 def cost_origin_cruise(x, u, h_r):  # h_r should be a scalar
-    # V, gamma, q, alpha, h = x
-    V, alpha, q, theta, h, xi_a = x
+    V, gamma, q, alpha, h = x
+    # V, alpha, q, theta, h, xi_a = x
     delta_e, delta_T, xi = u
 
     # T = 1 / 2 * config_opc.PARA_rho * config_opc.PARA_Sprop * config_opc.PARA_Cprop * (
@@ -211,7 +278,7 @@ def cost_origin_cruise_casadi(x, u, h_r):  # h_r should be a scalar
 
 
 def cost_origin_aggressive(x, u, h_r):
-    V, alpha, q, theta, h, xi_a = x[0], x[1], x[2], x[3], x[4], x[5]
+    V, alpha, q, theta, h = x[0], x[1], x[2], x[3], x[4]
     delta_e, delta_T, xi = u[0], u[1], u[2]
 
     L, D, M, _ = aerodynamic_forces(x, u)

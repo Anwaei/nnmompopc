@@ -35,7 +35,7 @@ NJ = 1
 NZ = 1
 NY = 1
 
-SCALE_MEAN_H = 300
+SCALE_MEAN_H = 0
 SCALE_VAR_H = 50
 SCALE_MEAN_V = 0
 SCALE_VAR_V = 20
@@ -44,6 +44,8 @@ SCALE_VAR_T = 50
 X0_SCALED = X0.copy()
 X0_SCALED[4] = (X0_SCALED[4]-SCALE_MEAN_H)/SCALE_VAR_H
 X0_SCALED[0] = (X0_SCALED[0]-SCALE_MEAN_V)/SCALE_VAR_V
+U0_SCALED = U0.copy()
+U0_SCALED[1] = (U0_SCALED[1]-SCALE_MEAN_T)/SCALE_VAR_T
 
 
 # PARA_KP = 2
@@ -57,8 +59,6 @@ PARA_KD = config_opc.PARA_KD
 PARA_KB = config_opc.PARA_KB
 
 N_LGL = 30
-
-DIM_CONS = N_LGL*(NX+NZ) + NX + NZ + NU
 
 def control_origin_PID(ep, ei, ed):
     u = PARA_KB + PARA_KP * ep + PARA_KI * ei + PARA_KD * ed
@@ -201,6 +201,35 @@ def dynamic_function_casadi(x, u):
                         M / Jy,
                         q,
                         V * casadi.sin(theta-alpha))
+    return dx
+
+def dynamic_function_casadi_scaled(x, u):
+    V = re_state(x[0], SCALE_MEAN_V, SCALE_VAR_V)
+    alpha = x[1]
+    q = x[2]
+    theta = x[3]
+    h = re_state(x[4], SCALE_MEAN_H, SCALE_VAR_H)
+    delta_e = u[0]
+    delta_T = re_state(u[1], SCALE_MEAN_T, SCALE_VAR_T)
+    xi = u[2]
+
+    # Delay xi
+    # xi_a = x[5]
+    # tau_xi = config_opc.PARA_tau_xi
+    # K_xi = config_opc.PARA_K_xi
+
+    L, D, M, T = aerodynamic_forces_scaled(x, u)
+    m = config_opc.PARA_m
+    # Jy = config_opc.PARA_Jy
+    # Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi
+    Jy = config_opc.PARA_J0 + config_opc.PARA_J1 * xi
+    g = config_opc.PARA_g
+
+    dx = casadi.vertcat((1 / m * (T * casadi.cos(alpha) - D - m * g * casadi.sin(theta-alpha)))/SCALE_VAR_V,
+                        q - 1 / (m * V) * (T * casadi.sin(alpha) + L) + g * casadi.cos(theta-alpha) / V,
+                        M / Jy,
+                        q,
+                        (V * casadi.sin(theta-alpha))/SCALE_VAR_H)
     return dx
 
 def dynamic_one_step(x, u):
@@ -415,6 +444,9 @@ def function_constraint_scaled(X, h_r_seq, diff_mat, xi_r):
 
     return eq_cons_array
 
+# DIM_CONS = N_LGL*(NX+NZ) + NX + NZ + N_LGL*NU
+DIM_CONS = N_LGL*(NX+NZ) + NX + NZ + N_LGL*NU + NU
+
 def function_constraint_casadi(X, h_r_seq, diff_mat):
     # dim_constraint = N_LGL*(NX+NZ+NY) + NX + NZ
     dim_constraint = DIM_CONS
@@ -448,6 +480,48 @@ def function_constraint_casadi(X, h_r_seq, diff_mat):
     eq_cons_array[N_LGL*(NX+NZ)+NX: N_LGL*(NX+NZ)+NX+NZ] = z_matrix[0, :]
 
     eq_cons_array[N_LGL*(NX+NZ)+NX+NZ:] = u_matrix[0, :] - casadi.reshape(U0, (1, config_opc.PARA_NU_AUXILIARY))
+
+    return eq_cons_array
+
+def function_constraint_casadi_scaled(X, h_r_seq, diff_mat):
+    # dim_constraint = N_LGL*(NX+NZ+NY) + NX + NZ
+    dim_constraint = DIM_CONS
+    eq_cons_array = casadi.MX.zeros(dim_constraint)
+    x_matrix = casadi.transpose(casadi.reshape(X[0: N_LGL*NX], (NX, N_LGL)))  # row vector
+    z_matrix = casadi.transpose(casadi.reshape(X[N_LGL*NX: N_LGL*(NX+NZ)], (NZ, N_LGL)))
+    u_matrix = casadi.transpose(casadi.reshape(X[N_LGL*(NX+NZ): N_LGL*(NX+NZ+NU)], (NU, N_LGL)))
+    # y_matrix = casadi.transpose(casadi.reshape(X[N_LGL*(NX+NZ+NU): N_LGL*(NX+NZ+NU+NY)], (NY, N_LGL)))
+
+    # constraints for x
+    fx_matrix = casadi.MX.zeros(x_matrix.shape)
+    for m in range(N_LGL):
+        dx = dynamic_function_casadi_scaled(x=x_matrix[m, :], u=u_matrix[m, :])
+        fx_matrix[m, :] = dx
+    fx_matrix *= PARA_TF/2
+    eq_cons_array[0: N_LGL*NX] = casadi.reshape(diff_mat@x_matrix - fx_matrix, (N_LGL*NX, 1))
+
+    # constraints for z
+    fz_matrix = casadi.MX.zeros(z_matrix.shape)
+    for m in range(N_LGL):
+        fz_matrix[m, :] = cost_func_scaled(x=x_matrix[m, :], u=u_matrix[m, :], h_r=h_r_seq[m])
+    fz_matrix *= PARA_TF/2
+    eq_cons_array[N_LGL*NX: N_LGL*(NX+NZ)] = casadi.reshape(diff_mat@z_matrix - fz_matrix, (N_LGL*NZ, 1))
+
+    # eq_cons_array[N_LGL*(NX+NZ)+1: N_LGL*(NX+NZ+NY)] = casadi.reshape(y_matrix[1:], (N_LGL*NY-1, 1))
+
+    # constraints for start value
+    # eq_cons_array[N_LGL*(NX+NZ+NY): N_LGL*(NX+NZ+NY)+NX] = x_matrix[0, :] - casadi.reshape(X0, (1, NX))
+    # eq_cons_array[N_LGL*(NX+NZ+NY)+NX: N_LGL*(NX+NZ+NY)+NX+NZ] = z_matrix[0, :]
+    # eq_cons_array[N_LGL*(NX+NZ): N_LGL*(NX+NZ)+NX] = x_matrix[0, :] - casadi.reshape(X0, (1, NX))
+    eq_cons_array[N_LGL*(NX+NZ): N_LGL*(NX+NZ)+NX] = x_matrix[0, :] - casadi.reshape(X0_SCALED, (1, NX))
+    eq_cons_array[N_LGL*(NX+NZ)+NX: N_LGL*(NX+NZ)+NX+NZ] = z_matrix[0, :]
+
+    # u bounds
+    for m in range(N_LGL):
+        eq_cons_array[N_LGL*(NX+NZ)+NX+NZ+m*NU:N_LGL*(NX+NZ)+NX+NZ+(m+1)*NU] = u_matrix[m, :]
+
+    # U0 constraint
+    eq_cons_array[N_LGL*(NX+NZ)+NX+NZ+N_LGL*NU:] = u_matrix[0, :] - casadi.reshape(U0_SCALED, (1, config_opc.PARA_NU_AUXILIARY))
 
     return eq_cons_array
 
@@ -702,12 +776,6 @@ if __name__ == "__main__":
     Xinitial_scaled = zip_variable_noy(x_init_scaled[LGL_indexes, :], z_init[LGL_indexes, :], u_init_scaled[LGL_indexes, :], y_init[LGL_indexes, :])
 
     dim_variable = N_LGL * (NX + NZ + NU)
-    V = casadi.MX.sym("V", dim_variable)
-    J = function_objective_casadi(X=V)
-    g = function_constraint_casadi(X=V, h_r_seq=h_r_lgl, diff_mat=diff_mat)
-    dim_constraint = DIM_CONS
-    lbg = np.zeros(dim_constraint)
-    ubg = np.zeros(dim_constraint)
 
     # nlp = {'x':V, 'f':J, 'g':g}
     # opts = {}
@@ -747,8 +815,8 @@ if __name__ == "__main__":
 
     # Scaled
     bounds_scaled = [(None, None)] * dim_variable
-    u_upper_bound_scaled = config_opc.PARA_U_UPPER_BOUND
-    u_lower_bound_scaled = config_opc.PARA_U_LOWER_BOUND
+    u_upper_bound_scaled = config_opc.PARA_U_UPPER_BOUND.copy()
+    u_lower_bound_scaled = config_opc.PARA_U_LOWER_BOUND.copy()
     u_upper_bound_scaled[1] = scale_state(u_upper_bound_scaled[1], SCALE_MEAN_T, SCALE_VAR_T)
     u_lower_bound_scaled[1] = scale_state(u_lower_bound_scaled[1], SCALE_MEAN_T, SCALE_VAR_T)
     for k in range(N_LGL):
@@ -760,6 +828,30 @@ if __name__ == "__main__":
     # x_optimal, y_optimal, z_optimal, u_optimal = unzip_variable(optimal_solution.x)
     # j_optimal = optimal_solution.fun
     plot_optimal_trajectory(optimal_solution.x, optimal_solution.fun, h_r, [x_init, z_init, u_init, y_init, j_init], from_scaled=True)
+
+    # Scaled casadi
+    # V = casadi.MX.sym("V", dim_variable)
+    # J = function_objective_casadi(X=V)
+    # g = function_constraint_casadi_scaled(X=V, h_r_seq=h_r_lgl, diff_mat=diff_mat)
+    # dim_constraint = DIM_CONS
+    # lbg = np.zeros(dim_constraint)
+    # ubg = np.zeros(dim_constraint)
+
+    # nlp = {'x':V, 'f':J, 'g':g}
+    # opts = {}
+    # opts["expand"] = True
+    # lbg[N_LGL*(NX+NZ)+NX+NZ: N_LGL*(NX+NZ)+NX+NZ+N_LGL*NU] = np.concatenate([u_lower_bound_scaled for i in range(N_LGL)], 0)
+    # ubg[N_LGL*(NX+NZ)+NX+NZ: N_LGL*(NX+NZ)+NX+NZ+N_LGL*NU] = np.concatenate([u_upper_bound_scaled for i in range(N_LGL)], 0)
+    # # opts["ipopt.acceptable_tol"] = 1e-5
+    # # opts["ipopt.max_iter"] = 4
+    # # opts["ipopt.linear_solver"] = 'ma27'
+    # solver = casadi.nlpsol('S', 'ipopt', nlp, opts)
+    # res = solver(x0=Xinitial_scaled, lbg=lbg, ubg=ubg)
+    # print("optimal cost: ", float(res["f"]))
+    # v_opt = np.array(res["x"])
+    # x_optimal, z_optimal, y_optimal, u_optimal = unzip_variable_noy(v_opt)
+    # j_optimal = np.array(res["f"])
+    # plot_optimal_trajectory(v_opt, j_optimal, h_r, [x_init, z_init, u_init, y_init, j_init], from_scaled=True)
 
 
     pass

@@ -33,8 +33,8 @@ def plot_trajectory_auxiliary(pic_folder, x_all, y_all, z_all, u_all, j_f, ref_t
     plt.plot(time_steps, ref_trajectory['h_r_seq'])
     plt.plot(time_steps, x_all)
     plt.ylim([-100, 500])
-    # plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
-    plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h', 'xi_a'])
+    plt.legend(['h_ref', 'V', 'gamma', 'q', 'alpha', 'h'])
+    # plt.legend(['h_ref', 'V', 'alpha', 'q', 'theta', 'h', 'xi_a'])
     plt.subplot(2,2,2)
     plt.plot(time_steps, u_all)
     plt.legend(['delta_e', 'delta_T', 'xi'])
@@ -128,10 +128,11 @@ def plot_trajectory_interpolated(pic_folder, t, x, y, z, u, x_point, y_point, z_
     plt.scatter(LGL_time, u_point[:, 2], s=scatter_size)
     plt.legend(['xi', 'LGL_xi'])
     # plt.savefig("pics\\interpolated_"+cur_time+"\\xi_interpolated.png")
-    plt.subplot(3,4,11) # x-xi_a
-    plt.plot(t, x[:, 5])
-    plt.scatter(LGL_time, x_point[:, 5], s=scatter_size)
-    plt.legend(['xi_a', 'LGL_xi_a'])
+    # plt.subplot(3,4,11) # x-xi_a
+    # plt.plot(t, x[:, 5])
+    # plt.scatter(LGL_time, x_point[:, 5], s=scatter_size)
+    # plt.legend(['xi_a', 'LGL_xi_a'])
+    
     plt.savefig(pic_folder + "\\interpolated.png")
 
 def plot_optimal_points(x_optimal, y_optimal, z_optimal, u_optimal):
@@ -277,63 +278,69 @@ def plot_comparison_open_morphing(pic_folder=None,
                                   result_nomorphing_manu=None, result_morphing_manu=None, 
                                   result_nomorphing_both=None, result_morphing_both=None,
                                   trajectory_ref=None, from_file = False, file_folder=None):
-    if from_file:
-        with np.load(f'{file_folder}\\data_nomorphing.npz') as data_nomorphing:
-            keys = ['x_n', 'y_n', 'z_n', 'u_n', 'j_f_n', 'aero_info_n']
-            x_n, y_n, z_n, u_n, j_f_n, aero_info_n = [data_nomorphing[key] for key in keys]
-        with np.load(f'{file_folder}\\data_morphing.npz') as data_morphing:
-            keys = ['x_m', 'y_m', 'z_m', 'u_m', 'j_f_m', 'aero_info_m']
-            x_m, y_m, z_m, u_m, j_f_m, aero_info_m = [data_morphing[key] for key in keys]
-        with np.load(f'{file_folder}\\data_nomorphing_fuel.npz') as data_nomorphing_fuel:
-            keys = ['x_n_f', 'y_n_f', 'z_n_f', 'u_n_f', 'j_f_n_f', 'aero_info_n_f']
-            x_n_f, y_n_f, z_n_f, u_n_f, j_f_n_f, aero_info_n_f = [data_nomorphing_fuel[key] for key in keys]
-        with np.load(f'{file_folder}\\data_morphing_fuel.npz') as data_morphing_fuel:
-            keys = ['x_m_f', 'y_m_f', 'z_m_f', 'u_m_f', 'j_f_m_f', 'aero_info_m_f']
-            x_m_f, y_m_f, z_m_f, u_m_f, j_f_m_f, aero_info_m_f = [data_morphing_fuel[key] for key in keys]
-        with np.load(f'{file_folder}\\data_nomorphing_manu.npz') as data_nomorphing_manu:
-            keys = ['x_n_m', 'y_n_m', 'z_n_m', 'u_n_m', 'j_f_n_m', 'aero_info_n_m']
-            x_n_m, y_n_m, z_n_m, u_n_m, j_f_n_m, aero_info_n_m = [data_nomorphing_manu[key] for key in keys]
-        with np.load(f'{file_folder}\\data_morphing_manu.npz') as data_morphing_manu:
-            keys = ['x_m_m', 'y_m_m', 'z_m_m', 'u_m_m', 'j_f_m_m', 'aero_info_m_m']
-            x_m_m, y_m_m, z_m_m, u_m_m, j_f_m_m, aero_info_m_m = [data_morphing_manu[key] for key in keys]
-        with np.load(f'{file_folder}\\data_nomorphing_both.npz') as data_nomorphing_both:
-            keys = ['x_n_b', 'y_n_b', 'z_n_b', 'u_n_b', 'j_f_n_b', 'aero_info_n_b']
-            x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = [data_nomorphing_both[key] for key in keys]
-        with np.load(f'{file_folder}\\data_morphing_both.npz') as data_morphing_both:
-            keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
-            x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = [data_morphing_both[key] for key in keys]
-        with np.load(f'{file_folder}\\h_ref.npz') as h_ref:
-            h_r = h_ref['h_r']
-    else:
-        x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
-        x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
-        np.savez(f'{pic_folder}\\data_nomorphing.npz', x_n=x_n, y_n=y_n, z_n=z_n, u_n=u_n, j_f_n=j_f_n,
-                 aero_info_n=aero_info_n)
-        np.savez(f'{pic_folder}\\data_morphing.npz', x_m=x_m, y_m=y_m, z_m=z_m, u_m=u_m, j_f_m=j_f_m,
-                 aero_info_m=aero_info_m)
-        # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
-        x_n_f, y_n_f, z_n_f, u_n_f, j_f_n_f, aero_info_n_f = result_nomorphing_fuel
-        x_m_f, y_m_f, z_m_f, u_m_f, j_f_m_f, aero_info_m_f = result_morphing_fuel
-        np.savez(f'{pic_folder}\\data_nomorphing_fuel.npz', x_n_f=x_n_f, y_n_f=y_n_f, z_n_f=z_n_f, u_n_f=u_n_f, j_f_n_f=j_f_n_f,
-                 aero_info_n_f=aero_info_n_f)
-        np.savez(f'{pic_folder}\\data_morphing_fuel.npz', x_m_f=x_m_f, y_m_f=y_m_f, z_m_f=z_m_f, u_m_f=u_m_f, j_f_m_f=j_f_m_f,
-                 aero_info_m_f=aero_info_m_f)
-        # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
-        x_n_m, y_n_m, z_n_m, u_n_m, j_f_n_m, aero_info_n_m = result_nomorphing_manu
-        x_m_m, y_m_m, z_m_m, u_m_m, j_f_m_m, aero_info_m_m = result_morphing_manu
-        np.savez(f'{pic_folder}\\data_nomorphing_manu.npz', x_n_m=x_n_m, y_n_m=y_n_m, z_n_m=z_n_m, u_n_m=u_n_m, j_f_n_m=j_f_n_m,
-                 aero_info_n_m=aero_info_n_m)
-        np.savez(f'{pic_folder}\\data_morphing_manu.npz', x_m_m=x_m_m, y_m_m=y_m_m, z_m_m=z_m_m, u_m_m=u_m_m, j_f_m_m=j_f_m_m,
-                 aero_info_m_m=aero_info_m_m)
-        # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
-        x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = result_nomorphing_both
-        x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = result_morphing_both
-        np.savez(f'{pic_folder}\\data_nomorphing_both.npz', x_n_b=x_n_b, y_n_b=y_n_b, z_n_b=z_n_b, u_n_b=u_n_b, j_f_n_b=j_f_n_b,
-                 aero_info_n_b=aero_info_n_b)
-        np.savez(f'{pic_folder}\\data_morphing_both.npz', x_m_b=x_m_b, y_m_b=y_m_b, z_m_b=z_m_b, u_m_b=u_m_b, j_f_m_b=j_f_m_b,
-                 aero_info_m_b=aero_info_m_b)
-        np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
-        h_r = trajectory_ref['h_r_seq']
+    # if from_file:
+    #     with np.load(f'{file_folder}\\data_nomorphing.npz') as data_nomorphing:
+    #         keys = ['x_n', 'y_n', 'z_n', 'u_n', 'j_f_n', 'aero_info_n']
+    #         x_n, y_n, z_n, u_n, j_f_n, aero_info_n = [data_nomorphing[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_morphing.npz') as data_morphing:
+    #         keys = ['x_m', 'y_m', 'z_m', 'u_m', 'j_f_m', 'aero_info_m']
+    #         x_m, y_m, z_m, u_m, j_f_m, aero_info_m = [data_morphing[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_nomorphing_fuel.npz') as data_nomorphing_fuel:
+    #         keys = ['x_n_f', 'y_n_f', 'z_n_f', 'u_n_f', 'j_f_n_f', 'aero_info_n_f']
+    #         x_n_f, y_n_f, z_n_f, u_n_f, j_f_n_f, aero_info_n_f = [data_nomorphing_fuel[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_morphing_fuel.npz') as data_morphing_fuel:
+    #         keys = ['x_m_f', 'y_m_f', 'z_m_f', 'u_m_f', 'j_f_m_f', 'aero_info_m_f']
+    #         x_m_f, y_m_f, z_m_f, u_m_f, j_f_m_f, aero_info_m_f = [data_morphing_fuel[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_nomorphing_manu.npz') as data_nomorphing_manu:
+    #         keys = ['x_n_m', 'y_n_m', 'z_n_m', 'u_n_m', 'j_f_n_m', 'aero_info_n_m']
+    #         x_n_m, y_n_m, z_n_m, u_n_m, j_f_n_m, aero_info_n_m = [data_nomorphing_manu[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_morphing_manu.npz') as data_morphing_manu:
+    #         keys = ['x_m_m', 'y_m_m', 'z_m_m', 'u_m_m', 'j_f_m_m', 'aero_info_m_m']
+    #         x_m_m, y_m_m, z_m_m, u_m_m, j_f_m_m, aero_info_m_m = [data_morphing_manu[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_nomorphing_both.npz') as data_nomorphing_both:
+    #         keys = ['x_n_b', 'y_n_b', 'z_n_b', 'u_n_b', 'j_f_n_b', 'aero_info_n_b']
+    #         x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = [data_nomorphing_both[key] for key in keys]
+    #     with np.load(f'{file_folder}\\data_morphing_both.npz') as data_morphing_both:
+    #         keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
+    #         x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = [data_morphing_both[key] for key in keys]
+    #     with np.load(f'{file_folder}\\h_ref.npz') as h_ref:
+    #         h_r = h_ref['h_r']
+    # else:
+    #     x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
+    #     x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
+    #     np.savez(f'{pic_folder}\\data_nomorphing.npz', x_n=x_n, y_n=y_n, z_n=z_n, u_n=u_n, j_f_n=j_f_n,
+    #              aero_info_n=aero_info_n)
+    #     np.savez(f'{pic_folder}\\data_morphing.npz', x_m=x_m, y_m=y_m, z_m=z_m, u_m=u_m, j_f_m=j_f_m,
+    #              aero_info_m=aero_info_m)
+    #     # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
+    #     x_n_f, y_n_f, z_n_f, u_n_f, j_f_n_f, aero_info_n_f = result_nomorphing_fuel
+    #     x_m_f, y_m_f, z_m_f, u_m_f, j_f_m_f, aero_info_m_f = result_morphing_fuel
+    #     np.savez(f'{pic_folder}\\data_nomorphing_fuel.npz', x_n_f=x_n_f, y_n_f=y_n_f, z_n_f=z_n_f, u_n_f=u_n_f, j_f_n_f=j_f_n_f,
+    #              aero_info_n_f=aero_info_n_f)
+    #     np.savez(f'{pic_folder}\\data_morphing_fuel.npz', x_m_f=x_m_f, y_m_f=y_m_f, z_m_f=z_m_f, u_m_f=u_m_f, j_f_m_f=j_f_m_f,
+    #              aero_info_m_f=aero_info_m_f)
+    #     # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
+    #     x_n_m, y_n_m, z_n_m, u_n_m, j_f_n_m, aero_info_n_m = result_nomorphing_manu
+    #     x_m_m, y_m_m, z_m_m, u_m_m, j_f_m_m, aero_info_m_m = result_morphing_manu
+    #     np.savez(f'{pic_folder}\\data_nomorphing_manu.npz', x_n_m=x_n_m, y_n_m=y_n_m, z_n_m=z_n_m, u_n_m=u_n_m, j_f_n_m=j_f_n_m,
+    #              aero_info_n_m=aero_info_n_m)
+    #     np.savez(f'{pic_folder}\\data_morphing_manu.npz', x_m_m=x_m_m, y_m_m=y_m_m, z_m_m=z_m_m, u_m_m=u_m_m, j_f_m_m=j_f_m_m,
+    #              aero_info_m_m=aero_info_m_m)
+    #     # np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
+    #     x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = result_nomorphing_both
+    #     x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = result_morphing_both
+    #     np.savez(f'{pic_folder}\\data_nomorphing_both.npz', x_n_b=x_n_b, y_n_b=y_n_b, z_n_b=z_n_b, u_n_b=u_n_b, j_f_n_b=j_f_n_b,
+    #              aero_info_n_b=aero_info_n_b)
+    #     np.savez(f'{pic_folder}\\data_morphing_both.npz', x_m_b=x_m_b, y_m_b=y_m_b, z_m_b=z_m_b, u_m_b=u_m_b, j_f_m_b=j_f_m_b,
+    #              aero_info_m_b=aero_info_m_b)
+    #     np.savez(f'{pic_folder}\\h_ref.npz', h_r = trajectory_ref['h_r_seq'])
+    #     h_r = trajectory_ref['h_r_seq']
+
+    h_r = trajectory_ref['h_r_seq']
+    x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
+    x_m, y_m, z_m, u_m, j_f_m, aero_info_m = result_morphing
+    x_n_f, y_n_f, z_n_f, u_n_f, j_f_n_f, aero_info_n_f = result_nomorphing_fuel
+    x_m_f, y_m_f, z_m_f, u_m_f, j_f_m_f, aero_info_m_f = result_morphing_fuel
 
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
     V_n = x_n[:, 0]
@@ -376,48 +383,48 @@ def plot_comparison_open_morphing(pic_folder=None,
     y1_m_f = y_m_f[:, 0]
     y2_n_f = y_n_f[:, 1]
     y2_m_f = y_m_f[:, 1]
-    V_n_m = x_n_m[:, 0]
-    V_m_m = x_m_m[:, 0]
-    alpha_n_m = x_n_m[:, 1]
-    alpha_m_m = x_m_m[:, 1]
-    q_n_m = x_n_m[:, 2]
-    q_m_m = x_m_m[:, 2]
-    theta_n_m = x_n_m[:, 3]
-    theta_m_m = x_m_m[:, 3]
-    h_n_m = x_n_m[:, 4]
-    h_m_m = x_m_m[:, 4]
-    de_n_m = u_n_m[:, 0]
-    de_m_m = u_m_m[:, 0]
-    T_n_m = u_n_m[:, 1]
-    T_m_m = u_m_m[:, 1]
-    xi_n_m = u_n_m[:, 2]
-    xi_m_m = u_m_m[:, 2]
-    y1_n_m = y_n_m[:, 0]
-    y1_m_m = y_m_m[:, 0]
-    y2_n_m = y_n_m[:, 1]
-    y2_m_m = y_m_m[:, 1]
-    V_n_b = x_n_b[:, 0]
-    V_m_b = x_m_b[:, 0]
-    alpha_n_b = x_n_b[:, 1]
-    alpha_m_b = x_m_b[:, 1]
-    q_n_b = x_n_b[:, 2]
-    q_m_b = x_m_b[:, 2]
-    theta_n_b = x_n_b[:, 3]
-    theta_m_b = x_m_b[:, 3]
-    h_n_b = x_n_b[:, 4]
-    h_m_b = x_m_b[:, 4]
-    de_n_b = u_n_b[:, 0]
-    de_m_b = u_m_b[:, 0]
-    T_n_b = u_n_b[:, 1]
-    T_m_b = u_m_b[:, 1]
-    xi_n_b = u_n_b[:, 2]
-    xi_m_b = u_m_b[:, 2]
-    y1_n_b = y_n_b[:, 0]
-    y1_m_b = y_m_b[:, 0]
-    y2_n_b = y_n_b[:, 1]
-    y2_m_b = y_m_b[:, 1]
+    # V_n_m = x_n_m[:, 0]
+    # V_m_m = x_m_m[:, 0]
+    # alpha_n_m = x_n_m[:, 1]
+    # alpha_m_m = x_m_m[:, 1]
+    # q_n_m = x_n_m[:, 2]
+    # q_m_m = x_m_m[:, 2]
+    # theta_n_m = x_n_m[:, 3]
+    # theta_m_m = x_m_m[:, 3]
+    # h_n_m = x_n_m[:, 4]
+    # h_m_m = x_m_m[:, 4]
+    # de_n_m = u_n_m[:, 0]
+    # de_m_m = u_m_m[:, 0]
+    # T_n_m = u_n_m[:, 1]
+    # T_m_m = u_m_m[:, 1]
+    # xi_n_m = u_n_m[:, 2]
+    # xi_m_m = u_m_m[:, 2]
+    # y1_n_m = y_n_m[:, 0]
+    # y1_m_m = y_m_m[:, 0]
+    # y2_n_m = y_n_m[:, 1]
+    # y2_m_m = y_m_m[:, 1]
+    # V_n_b = x_n_b[:, 0]
+    # V_m_b = x_m_b[:, 0]
+    # alpha_n_b = x_n_b[:, 1]
+    # alpha_m_b = x_m_b[:, 1]
+    # q_n_b = x_n_b[:, 2]
+    # q_m_b = x_m_b[:, 2]
+    # theta_n_b = x_n_b[:, 3]
+    # theta_m_b = x_m_b[:, 3]
+    # h_n_b = x_n_b[:, 4]
+    # h_m_b = x_m_b[:, 4]
+    # de_n_b = u_n_b[:, 0]
+    # de_m_b = u_m_b[:, 0]
+    # T_n_b = u_n_b[:, 1]
+    # T_m_b = u_m_b[:, 1]
+    # xi_n_b = u_n_b[:, 2]
+    # xi_m_b = u_m_b[:, 2]
+    # y1_n_b = y_n_b[:, 0]
+    # y1_m_b = y_m_b[:, 0]
+    # y2_n_b = y_n_b[:, 1]
+    # y2_m_b = y_m_b[:, 1]
 
-    # Shown Figure
+    # Show Figure
     plt.figure()
     plt.title("Trajectory Comparison")
     plt.plot(time_steps, np.column_stack((h_r, h_n, h_n_f, h_m, h_m_f)))
@@ -457,8 +464,6 @@ def plot_comparison_open_morphing(pic_folder=None,
     print(f"n_f: {y1_n_f[half_time]}")
     print(f"m: {y1_m[half_time]}")
     print(f"m: {y1_m_f[half_time]}")
-
-
     
     
     # Main Figure

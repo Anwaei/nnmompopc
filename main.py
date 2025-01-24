@@ -1,5 +1,5 @@
 import numpy as np
-import dynamics as dyn
+import dynamics2 as dyn
 import config_opc
 import plot_utils as pu
 import simulate as simu
@@ -22,9 +22,15 @@ if __name__ == '__main__':
     if not os.path.exists(pic_folder_pid):
          os.mkdir(pic_folder_pid)
     pu.plot_trajectory_auxiliary(pic_folder_pid, x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, tra_ref, aero_info)
-#     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+#     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_scaled(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+    x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_scaled(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, morphing_disabled=True)
 #     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi_LGR(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
-    x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+#     x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+    from_scaled = True
+    if from_scaled:
+        x_optimal[:, 4] = dyn.re_state(x_optimal[:, 4], config_opc.SCALE_MEAN_H, config_opc.SCALE_VAR_H)
+        x_optimal[:, 0] = dyn.re_state(x_optimal[:, 0], config_opc.SCALE_MEAN_V, config_opc.SCALE_VAR_V)
+        u_optimal[:, 1] = dyn.re_state(u_optimal[:, 1], config_opc.SCALE_MEAN_T, config_opc.SCALE_VAR_T)
     pu.plot_optimal_points(x_optimal, y_optimal, z_optimal, u_optimal)
     t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"])
     pic_folder_interpolated = "pics\\interpolated_"+cur_time
