@@ -1,6 +1,35 @@
-        with np.load(f'{file_folder}\\data_nomorphing.npz') as data_nomorphing:
-            keys = ['x_n_b', 'y_n_b', 'z_n_b', 'u_n_b', 'j_f_n_b', 'aero_info_n_b']
-            x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = [data_nomorphing[key] for key in keys]
-        with np.load(f'{file_folder}\\data_morphing.npz') as data_morphing:
-            keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
-            x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = [data_morphing[key] for key in keys]
+1701
+Tracking error:
+n: 2005.0714708289195
+n_f: 2301.5357072336783
+m: 2036.7198282752718
+m_f: 2071.2012052368486
+Fuel consumption:
+n: 2.319411959933084
+n_f: 1.9994954813139623
+m: 2.321281064182745
+m_f: 1.9989834897318783
+
+1702
+Tracking error:
+n: 8683.786322199066
+n_f: 7986.142873143699
+m: 49541.98233367382
+m_f: 76205.89980715587
+Fuel consumption:
+n: 4.250544878088153
+n_f: 1.9982969402781268
+m: 4.271014856614821
+m_f: 2.0000917535454352
+
+1659
+Tracking error:
+n: 2239.559061219201
+n_f: 2966.382885784527
+m: 2109.4234738592713
+m_f: 2986.231158077793
+Fuel consumption:
+n: 2.2745074495023365
+n_f: 1.9995542271829354
+m: 2.305414339256884
+m_f: 1.9975539803684113

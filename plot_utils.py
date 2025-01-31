@@ -277,7 +277,8 @@ def plot_comparison_open_morphing(pic_folder=None,
                                   result_nomorphing_fuel=None, result_morphing_fuel=None, 
                                   result_nomorphing_manu=None, result_morphing_manu=None, 
                                   result_nomorphing_both=None, result_morphing_both=None,
-                                  trajectory_ref=None, from_file = False, file_folder=None):
+                                  trajectory_ref=None, from_file = False, file_folder=None,
+                                  shown=True):
     # if from_file:
     #     with np.load(f'{file_folder}\\data_nomorphing.npz') as data_nomorphing:
     #         keys = ['x_n', 'y_n', 'z_n', 'u_n', 'j_f_n', 'aero_info_n']
@@ -455,15 +456,17 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
 
     print("Tracking error:")
-    print(f"n: {err_n}")
-    print(f"n_f: {err_n_f}")
-    print(f"m: {err_m}")
-    print(f"m: {err_m_f}")
+    print(f"n: {np.sum(err_n)}")
+    print(f"n_f: {np.sum(err_n_f)}")
+    print(f"m: {np.sum(err_m)}")
+    print(f"m_f: {np.sum(err_m_f)}")
     print("Fuel consumption:")
     print(f"n: {y1_n[half_time]}")
     print(f"n_f: {y1_n_f[half_time]}")
     print(f"m: {y1_m[half_time]}")
-    print(f"m: {y1_m_f[half_time]}")
+    print(f"m_f: {y1_m_f[half_time]}")
+    plt.savefig(pic_folder + "\\cmp_fuel_err_sum.png")
+
     
     
     # Main Figure
@@ -486,12 +489,12 @@ def plot_comparison_open_morphing(pic_folder=None,
     # plt.legend(['No Morphing', 'Morphing'])
     # plt.savefig(pic_folder + "\\cmp_open_morphing_err.png")
 
-    # plt.figure()
-    # plt.title("Normalized Major Objectives")
-    # plt.plot(time_steps, np.column_stack((z_n, z_m)))
-    # plt.xlabel('t')
-    # plt.ylabel('z')
-    # plt.legend(['No Morphing', 'Morphing'])
+    plt.figure()
+    plt.title("Normalized Major Objectives")
+    plt.plot(time_steps, np.column_stack((z_n, z_n_f, z_m, z_m_f)))
+    plt.xlabel('t')
+    plt.ylabel('z')
+    plt.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
 
     plt.figure()
     plt.title("Normalized Morphing Parameter Comparison")
@@ -524,29 +527,29 @@ def plot_comparison_open_morphing(pic_folder=None,
     # print(f"Final cruise cost: {j_f_m[1]}")
     # print(f"Final aggressive cost: {j_f_m[2]}")
 
-    # # Auxiliary Figures
-    # plt.figure()
-    # plt.title("Other Trajectories")
-    # plt.subplot(2,3,1)
-    # plt.plot(time_steps, np.column_stack((V_n, V_m)))
-    # plt.ylabel('V')
-    # plt.subplot(2,3,2)
-    # plt.plot(time_steps, np.column_stack((alpha_n, alpha_m)))
-    # plt.ylabel('alpha')
-    # plt.subplot(2,3,3)
-    # plt.plot(time_steps, np.column_stack((q_n, q_m)))
-    # plt.ylabel('q')
-    # plt.subplot(2,3,4)
-    # plt.plot(time_steps, np.column_stack((theta_n, theta_m)))
-    # plt.ylabel('theta')
-    # plt.subplot(2,3,5)
-    # plt.plot(time_steps, np.column_stack((de_n, de_m)))
-    # plt.ylabel('de')
-    # plt.subplot(2,3,6)
-    # plt.plot(time_steps, np.column_stack((T_n, T_m)))
-    # plt.ylabel('T')
-    # plt.legend(['No Morphing', 'Morphing'])
-    # plt.savefig(pic_folder + "\\cmp_open_morphing_others.png")
+    # Auxiliary Figures
+    plt.figure()
+    plt.title("Other Trajectories")
+    plt.subplot(2,3,1)
+    plt.plot(time_steps, np.column_stack((V_n, V_m)))
+    plt.ylabel('V')
+    plt.subplot(2,3,2)
+    plt.plot(time_steps, np.column_stack((alpha_n, alpha_m)))
+    plt.ylabel('alpha')
+    plt.subplot(2,3,3)
+    plt.plot(time_steps, np.column_stack((q_n, q_m)))
+    plt.ylabel('q')
+    plt.subplot(2,3,4)
+    plt.plot(time_steps, np.column_stack((theta_n, theta_m)))
+    plt.ylabel('theta')
+    plt.subplot(2,3,5)
+    plt.plot(time_steps, np.column_stack((de_n, de_m)))
+    plt.ylabel('de')
+    plt.subplot(2,3,6)
+    plt.plot(time_steps, np.column_stack((T_n, T_m)))
+    plt.ylabel('T')
+    plt.legend(['No Morphing', 'Morphing'])
+    plt.savefig(pic_folder + "\\cmp_open_morphing_others.png")
 
     aero_forces_n, aero_deriv_n, angle_deg_n = aero_info_n
     aero_forces_n_f, aero_deriv_n_f, angle_deg_n_f = aero_info_n_f
@@ -587,7 +590,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     # plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0], aero_forces_m[:, 0]))/np.column_stack((aero_forces_n[:, 1], aero_forces_m[:, 1])))
     # plt.ylabel('L/D')
 
-    plt.show()
+    if shown:
+        plt.show()
 
 
 def test_aerodynamic_coefficient():

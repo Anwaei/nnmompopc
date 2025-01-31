@@ -39,7 +39,7 @@ PARA_J1 = 0.6
 PARA_CLdeltae = -0.02
 PARA_CMdeltae = 0.125
 # Parameters of epsilon constraints
-PARA_EPI12 = 0.5
+PARA_EPI12 = 0.04
 PARA_EPI22 = 0.3
 # Parameters of PS method
 PARA_N_COLLECT = 35
@@ -110,6 +110,7 @@ PARA_INDEXES_CONS_NP_LGL = np.cumsum(
 # Cost normalization
 PARA_PA_NORM = 10
 PARA_PC_NORM = 10000
+# PARA_ERROR_SCALE = 10000
 PARA_ERROR_SCALE = 10000
 # PARA_ERROR_SCALE = 1
 
@@ -131,12 +132,20 @@ PARA_U_LOWER_BOUND = np.array([-15/180*np.pi, 15, 0.1])
 PARA_U_CONSTANT = np.array([0.1, 0.8, 0.5])
 PARA_FIX_XI = 0.5
 # PID control
-PARA_KP = np.array([0.0002, 0.15, 0.001])
+# PARA_KP = np.array([0.0002, 0.15, 0.001])
+# PARA_KP = np.array([0.00012, 0.12, 0.0006])
+PARA_KP = np.array([0.0003, 0.2, 0.0015])
 PARA_KI = np.array([0.00, 0.07, 0.001])
 PARA_KD = np.array([0.000, 0.0, 0.0])
+# PARA_KP = np.array([0.0003, 0.2, 0.0015])
+# PARA_KI = np.array([0.0001, 0.02, 0.01])
+# PARA_KD = np.array([0.000, 0.0, 0.0])
+
+PARA_KP_L = np.array([0.0001, 0.1, 0.0005])
+PARA_KP_U = np.array([0.0010, 0.5, 0.0015])
+
 PARA_KB = np.array([0.5, 0.5, 0.5])
-# PARA_KP = np.array([0.000, 0.000, 0.000])
-# PARA_KI = np.array([0.000, 0.000, 0.0])
+
 
 
 

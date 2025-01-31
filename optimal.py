@@ -251,6 +251,7 @@ def function_objective_fuel(X, t_switch):
     z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
     gy = y_last_aggre - PARA_EPI12 * t_switch
     cost = np.max((gy, z_last))
+    # print(f'y_last_aggre: {y_last_aggre}, z_last: {z_last}')
     return cost
 
 def print_C(x):
@@ -395,7 +396,8 @@ def function_constraint_scaled(X, t_switch, h_ref_lgl, diff_mat, x0):
     # constraints for y
     fy_matrix1 = np.zeros(shape=(PARA_N_LGL_AGGRE, 1))
     for m in range(PARA_N_LGL_AGGRE):
-        fy_matrix1[m, :] = x_aggre_matrix[m, 0] * u_aggre_matrix[m, 1] / PARA_PC_NORM
+        # Restore velocity and T
+        fy_matrix1[m, :] = dyn.re_state(x_aggre_matrix[m, 0], SCALE_MEAN_V, SCALE_VAR_V) * dyn.re_state(u_aggre_matrix[m, 1], SCALE_MEAN_T, SCALE_VAR_T) / PARA_PC_NORM
     fy_matrix1 *= t_switch/2
     eq_cons_array[PARA_INDEXES_CONS_NP_LGL[2]:PARA_INDEXES_CONS_NP_LGL[3]-PARA_N_LGL_AGGRE] = np.reshape(diff_mat @ y_aggre_matrix[:, 0, np.newaxis] - fy_matrix1, PARA_N_LGL_AGGRE)
     eq_cons_array[PARA_INDEXES_CONS_NP_LGL[3]-PARA_N_LGL_AGGRE:PARA_INDEXES_CONS_NP_LGL[3]] = y_aggre_matrix[:, 1]
@@ -404,7 +406,7 @@ def function_constraint_scaled(X, t_switch, h_ref_lgl, diff_mat, x0):
     fy_matrix2 = np.zeros(shape=(PARA_N_LGL_AGGRE, 1))
     eq_cons_array[PARA_INDEXES_CONS_NP_LGL[3]:PARA_INDEXES_CONS_NP_LGL[4]-PARA_N_LGL_AGGRE] = (y_cruise_matrix[:, 0] - y_aggre_matrix[-1, 0])
     for m in range(PARA_N_LGL_CRUISE):
-        fy_matrix2[m, :] = x_cruise_matrix[m, 0] * u_cruise_matrix[m, 1] / PARA_PC_NORM # Not modified
+        fy_matrix2[m, :] = dyn.re_state(x_cruise_matrix[m, 0], SCALE_MEAN_V, SCALE_VAR_V) * dyn.re_state(u_cruise_matrix[m, 1], SCALE_MEAN_T, SCALE_VAR_T) / PARA_PC_NORM # Not modified
     fy_matrix2 *= (PARA_TF-t_switch)/2
     eq_cons_array[PARA_INDEXES_CONS_NP_LGL[4]-PARA_N_LGL_AGGRE:PARA_INDEXES_CONS_NP_LGL[4]] = np.reshape(diff_mat @ y_cruise_matrix[:, 1, np.newaxis] - fy_matrix2, PARA_N_LGL_CRUISE)
 
@@ -439,8 +441,8 @@ def generate_initial_variables(x0, traject_ref, method="pid"):
 
     return X
 
-def generate_initial_variables_scaled(x0, traject_ref, method="pid"):
-    x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, aero_info = simu.simulate_auxiliary(x0=x0, trajectory_ref=traject_ref, control_method=method)
+def generate_initial_variables_scaled(x0, traject_ref, method="pid", given_input=None):
+    x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, aero_info = simu.simulate_auxiliary(x0=x0, trajectory_ref=traject_ref, control_method=method, given_input=given_input)
     # y_all_aux = np.zeros(y_all_aux.shape)
     # pu.plot_trajectory_auxiliary(x_all_aux, y_all_aux, z_all_aux, u_all_aux, j_f_aux, traject_ref, aero_info)
     LGL_points = calculate_LGL_points(N_LGL=PARA_N_LGL_AGGRE)
@@ -517,14 +519,14 @@ def generate_PS_solution(x0, trajectory_ref):
     return x_optimal, y_optimal, z_optimal, u_optimal, j_optimal
 
 
-def generate_PS_solution_scaled(x0, trajectory_ref, morphing_disabled=None, fun_obj = function_objective):
+def generate_PS_solution_scaled(x0, trajectory_ref, morphing_disabled=None, fun_obj = function_objective, tol=None, maxiter=2500, init_method='pid', given_input=None):
     t_switch = trajectory_ref['t_switch']
     h_ref = trajectory_ref['h_r_seq']
     LGL_points = calculate_LGL_points(N_LGL=PARA_N_LGL_AGGRE)  # Assume same number
     LGL_indexes, _ = calculate_LGL_indexes(LGL_points=LGL_points, t_switch=t_switch)
     h_ref_lgl = h_ref[LGL_indexes]
     diff_mat = calculate_differential_matrix_LGL(PARA_N_LGL_AGGRE)  # Assume same number
-    Xinitial_scaled = generate_initial_variables_scaled(x0=PARA_X0, traject_ref=trajectory_ref, method="pid")
+    Xinitial_scaled = generate_initial_variables_scaled(x0=PARA_X0, traject_ref=trajectory_ref, method=init_method, given_input=given_input)
 
     fun_obj_scaled = fun_obj
     fun_cons_scaled = function_constraint_scaled
@@ -546,7 +548,10 @@ def generate_PS_solution_scaled(x0, trajectory_ref, morphing_disabled=None, fun_
     lb[PARA_INDEXES_VAR[6]:PARA_INDEXES_VAR[8]] = np.concatenate([ulb for i in range(PARA_N_LGL_ALL)])
     ub[PARA_INDEXES_VAR[6]:PARA_INDEXES_VAR[8]] = np.concatenate([uub for i in range(PARA_N_LGL_ALL)])
     bounds = Bounds(lb=lb, ub=ub)
-    optimal_solution = minimize(fun=fun_obj_scaled, x0=Xinitial_scaled, constraints=constraints, bounds=bounds, args=t_switch, method='SLSQP', callback=callback_PS, options={'maxiter': 2500, 'disp': True, 'iprint': 2})
+    if tol is None:
+        optimal_solution = minimize(fun=fun_obj_scaled, x0=Xinitial_scaled, constraints=constraints, bounds=bounds, args=t_switch, method='SLSQP', callback=callback_PS, options={'maxiter': maxiter, 'disp': True, 'iprint': 2})
+    else:
+        optimal_solution = minimize(fun=fun_obj_scaled, x0=Xinitial_scaled, constraints=constraints, bounds=bounds, args=t_switch, method='SLSQP', callback=callback_PS, options={'maxiter': maxiter, 'disp': True, 'iprint': 2}, tol=tol)
     x_optimal, y_optimal, z_optimal, u_optimal = unzip_variable(optimal_solution.x)
     j_optimal = optimal_solution.fun
 
