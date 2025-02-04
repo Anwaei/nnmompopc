@@ -11,15 +11,16 @@ import argparse
 
 if __name__ == '__main__':
      parser = argparse.ArgumentParser(description='Compare open loop results.')
-     parser.add_argument('--from_file_n', type=bool, default=False, help='Load non-morphing data from file')
+     parser.add_argument('--from_file_n', action='store_true', help='Load non-morphing data from file')
      parser.add_argument('--file_folder_n', type=str, default="pics/results_open_20250128-1659", help='Folder for non-morphing data')
-     parser.add_argument('--from_file_m', type=bool, default=False, help='Load morphing data from file')
-     parser.add_argument('--file_folder_m', type=str, default="pics/results_open_20250128-1659", help='Folder for morphing data')
-     parser.add_argument('--from_file_n_f', type=bool, default=False, help='Load non-morphing fuel data from file')
+     parser.add_argument('--from_file_m', action='store_true', help='Load morphing data from file')
+     parser.add_argument('--file_folder_m', type=str, default="pics/results_open_20250131-1407_1", help='Folder for morphing data')
+     parser.add_argument('--from_file_n_f', action='store_true', help='Load non-morphing fuel data from file')
      parser.add_argument('--file_folder_n_f', type=str, default="pics/results_open_20250128-1659", help='Folder for non-morphing fuel data')
-     parser.add_argument('--from_file_m_f', type=bool, default=False, help='Load morphing fuel data from file')
-     parser.add_argument('--file_folder_m_f', type=str, default="pics/results_open_20250128-1701", help='Folder for morphing fuel data')
-     parser.add_argument('--K', type=int, default=10, help='PID gain numbers')
+     parser.add_argument('--from_file_m_f', action='store_true', help='Load morphing fuel data from file')
+     parser.add_argument('--file_folder_m_f', type=str, default="pics/results_open_20250131-1701", help='Folder for morphing fuel data')
+     parser.add_argument('--K', type=int, default=1, help='PID gain numbers')
+     parser.add_argument('--shown', action='store_true', help='Show the plot')
      args = parser.parse_args()
 
      from_file_n = args.from_file_n
@@ -31,6 +32,7 @@ if __name__ == '__main__':
      from_file_m_f = args.from_file_m_f
      file_folder_m_f = args.file_folder_m_f
      K = args.K
+     shown = args.shown
 
      cur_time = time.strftime("%Y%m%d-%H%M", time.localtime())
      pic_folder = "pics\\results_open_"+cur_time
@@ -46,10 +48,15 @@ if __name__ == '__main__':
                u_init_given = data_init['u_m']
 
      for k in range(K):
+          # file_folder_n = f"pics\\results_open_20250131-1407_{k}"
+          # file_folder_m = f"pics\\results_open_20250131-1407_{k}"
+          # file_folder_n_f = f"pics\\results_open_20250131-1407_{k}"
+          # file_folder_m_f = f"pics\\results_open_20250131-1407_{k}"
+
           pic_folder = f"pics\\results_open_{cur_time}_{k}"
           if not os.path.exists(pic_folder):
                os.mkdir(pic_folder)
-          config_opc.PARA_KP = config_opc.PARA_KP_L + k * (config_opc.PARA_KP_U - config_opc.PARA_KP_L) / (K - 1)
+          config_opc.PARA_KP = config_opc.PARA_KP_L + k * (config_opc.PARA_KP_U - config_opc.PARA_KP_L) / (K - 1) if K > 1 else config_opc.PARA_KP
           with open(f'{pic_folder}\\config_kp.txt', 'w') as f:
                f.write(f'config_opc.PARA_KP = {config_opc.PARA_KP}\n')
           print(f'k = {k}')
@@ -119,7 +126,7 @@ if __name__ == '__main__':
           pu.plot_comparison_open_morphing(pic_folder, 
                                         result_nomorphing=results_n, result_morphing=results_m,
                                         result_nomorphing_fuel=results_n_f, result_morphing_fuel=results_m_f,
-                                        trajectory_ref=tra_ref, shown=False)
+                                        trajectory_ref=tra_ref, shown=shown)
      
      
 

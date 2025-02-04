@@ -40,6 +40,7 @@ PARA_CLdeltae = -0.02
 PARA_CMdeltae = 0.125
 # Parameters of epsilon constraints
 PARA_EPI12 = 0.04
+# PARA_EPI12 = 0.03
 PARA_EPI22 = 0.3
 # Parameters of PS method
 PARA_N_COLLECT = 35
@@ -142,7 +143,7 @@ PARA_KD = np.array([0.000, 0.0, 0.0])
 # PARA_KD = np.array([0.000, 0.0, 0.0])
 
 PARA_KP_L = np.array([0.0001, 0.1, 0.0005])
-PARA_KP_U = np.array([0.0010, 0.5, 0.0015])
+PARA_KP_U = np.array([0.0002, 0.2, 0.0020])
 
 PARA_KB = np.array([0.5, 0.5, 0.5])
 
