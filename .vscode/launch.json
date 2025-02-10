@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Compare with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "compare_open.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--from_file_n", "--file_folder_n", "pics/results_open_20250201-1133_3",
+                "--from_file_m", "--file_folder_m", "pics/results_open_20250201-1133_3",
+                "--from_file_n_f", "--file_folder_n_f", "pics/results_open_20250201-1133_3",
+                "--from_file_m_f", "--file_folder_m_f", "pics/results_open_20250201-1133_6",
+                "--shown"
+            ]
+        }
+    ]
+}

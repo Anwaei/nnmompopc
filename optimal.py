@@ -251,7 +251,23 @@ def function_objective_fuel(X, t_switch):
     z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
     gy = y_last_aggre - PARA_EPI12 * t_switch
     cost = np.max((gy, z_last))
-    # print(f'y_last_aggre: {y_last_aggre}, z_last: {z_last}')
+    return cost
+
+def function_objective_manu(X, t_switch):
+    y_last_cruise = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY)-1]
+    z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
+    gy = -y_last_cruise + PARA_EPI22 * (PARA_TF - t_switch)
+    cost = np.max((gy, z_last))
+    return cost
+
+def function_objective_both(X, t_switch):
+    y_last_aggre = X[PARA_N_LGL_ALL * PARA_NX_AUXILIARY + PARA_N_LGL_AGGRE * PARA_NY_AUXILIARY - 2]
+    y_last_cruise = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY)-1]
+    z_last = X[PARA_N_LGL_ALL*(PARA_NX_AUXILIARY+PARA_NY_AUXILIARY+PARA_NZ_AUXILIARY)-1]
+    y_last = np.array([y_last_aggre, -y_last_cruise])
+    gy = y_last - np.array([PARA_EPI12 * t_switch, -PARA_EPI22 * (PARA_TF - t_switch)])
+    max_gy = np.max(gy)
+    cost = np.max((max_gy, z_last))
     return cost
 
 def print_C(x):

@@ -127,13 +127,14 @@ if __name__ == "__main__":
     dataset = OptimalDataset()
     err_thr = 3e-3
     switch_time = 0.5
-    high_heights = np.arange(start=350, stop=360, step=10)
-    low_heights = np.arange(start=250, stop=240, step=-10)
+    high_heights = np.arange(start=350, stop=375, step=5)
+    low_heights = np.arange(start=250, stop=225, step=-5)
     pairs = []
     for h in high_heights:
         for l in low_heights:
             tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, high_height=h, low_height=l)
-            x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+            # x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+            x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_scaled(x0=config_opc.PARA_X0,trajectory_ref=tra_ref, morphing_disabled=None, fun_obj=opt.function_objective_both)
             t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"])
             x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
             if j_f_simu[0] < err_thr:
