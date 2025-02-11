@@ -135,7 +135,8 @@ PARA_FIX_XI = 0.5
 # PID control
 # PARA_KP = np.array([0.0002, 0.15, 0.001])
 # PARA_KP = np.array([0.00012, 0.12, 0.0006])
-PARA_KP = np.array([0.0003, 0.2, 0.0015])
+# PARA_KP = np.array([0.0003, 0.2, 0.0015])
+PARA_KP = np.array([0.0002, 0.2, 0.0020])
 PARA_KI = np.array([0.00, 0.07, 0.001])
 PARA_KD = np.array([0.000, 0.0, 0.0])
 # PARA_KP = np.array([0.0003, 0.2, 0.0015])

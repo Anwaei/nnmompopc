@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     time_current = datetime.now().strftime('%m-%d-%H%M')
     dataset = OptimalDataset()
-    err_thr = 3e-3
+    err_thr = 3e-1
     switch_time = 0.5
     high_heights = np.arange(start=350, stop=375, step=5)
     low_heights = np.arange(start=250, stop=225, step=-5)
@@ -142,10 +142,12 @@ if __name__ == "__main__":
                 dataset.append_item(x_all_simu, y_all_simu, z_all_simu, u_all_simu, tra_ref)
             else:
                 pairs.append({'high_height':h, 'low_height':l, 'error':j_f_simu[0], 'if_add':False})
-    dataset.normalization()
-
+    
     for pair in pairs:
         print(pair)
+
+    dataset.normalization()
+        
     torch.save(dataset, f'data/opt_data_{time_current}.pt')
     save_statistics(dataset, time_current)
     pass
