@@ -202,9 +202,11 @@ def dynamic_function_casadi(x, u):
     xi = u[2]
 
     # Delay xi
-    xi_a = x[5]
-    tau_xi = config_opc.PARA_tau_xi
-    K_xi = config_opc.PARA_K_xi
+    # xi_a = x[5]
+    # tau_xi = config_opc.PARA_tau_xi
+    # K_xi = config_opc.PARA_K_xi
+
+    xi_a = xi
 
     L, D, M, T = aerodynamic_forces(x, u)
     m = config_opc.PARA_m
@@ -217,8 +219,7 @@ def dynamic_function_casadi(x, u):
                         q - 1 / (m * V) * (T * casadi.sin(alpha) + L) + g * casadi.cos(theta-alpha) / V,
                         M / Jy,
                         q,
-                        V * casadi.sin(theta-alpha),
-                        -1/tau_xi*xi_a + K_xi/tau_xi*xi)
+                        V * casadi.sin(theta-alpha))
     return dx
 
 
