@@ -169,7 +169,8 @@ EPOCHES = 1000
 #
 DATA_PATH = 'data/opt_data_02-12-1252.pt'
 STAT_PATH = 'data/opt_stats_02-12-1252.npz'
-NET_PATH = 'model/net_08-26-2042/epoch_443.pth'
+# NET_PATH = 'model/net_08-26-2042/epoch_443.pth'
+NET_PATH = 'model/net_02-13-1201/epoch_317.pth'
 
 PARA_WP = 0.01
 PARA_WN = 1

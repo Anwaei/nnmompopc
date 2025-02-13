@@ -29,9 +29,18 @@ if __name__ == '__main__':
     high_height = 350
     low_height = 250
     tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, high_height=high_height, low_height=low_height)
-    x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
-    t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"])
-    x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
+    # x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
+    # t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"])
+    # x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
+    # h_r_seq = tra_ref['h_r_seq']
+    # time_steps = tra_ref['time_steps']
+
+    file_folder_m_b = "pics/results_open_20250210-0038_0"
+    with np.load(f'{file_folder_m_b}\\data_morphing_both.npz') as data_morphing_both:
+                    keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
+                    results_m_b = [data_morphing_both[key] for key in keys]
+    
+    x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = results_m_b
     h_r_seq = tra_ref['h_r_seq']
     time_steps = tra_ref['time_steps']
 
