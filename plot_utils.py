@@ -470,7 +470,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.savefig(pic_folder + "\\compar_fuel_tra_err.png")
 
     # Plot fuel consumption
-    plt.figure()
+    plt.figure(figsize=(6, 6))
     plt.title("Normalized Fuel Consumption Comparison")
     half_time = int(time_steps.shape[0]/2)
     plt.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_f[0:half_time], y1_m[0:half_time], y1_m_f[0:half_time])))
@@ -490,7 +490,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     lines = plt.plot(time_steps, np.column_stack((xi_n, xi_n_f, xi_m, xi_m_f)))
     plt.xlabel(r'$t$')
     plt.ylabel(r'$\xi$')
-    plt.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    plt.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'], loc='upper right')
     colors = [line.get_color() for line in lines]
     colors = np.tile(colors, (len(LGL_time), 1)).flatten()
     plt.scatter(np.tile(LGL_time, (4, 1)).T, np.column_stack((xi_n[LGL_indexes], xi_n_f[LGL_indexes], xi_m[LGL_indexes], xi_m_f[LGL_indexes])), s=scatter_size, color=colors)
@@ -538,7 +538,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.tight_layout()
     plt.savefig(pic_folder + "\\cmp_open_morphing_aeroderiv.png")
 
-    plt.figure()
+    plt.figure(figsize=(10, 8))
     plt.title("Aerodynamic Forces and Moments")
     plt.subplot(2, 2, 1)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0], aero_forces_n_f[:, 0], aero_forces_m[:, 0], aero_forces_m_f[:, 0])))
@@ -552,7 +552,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.subplot(2, 2, 3)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 2], aero_forces_n_f[:, 2], aero_forces_m[:, 2], aero_forces_m_f[:, 2])))
     plt.ylabel(r'$M$')
-    plt.ylim([-20, 20])
+    plt.ylim([-10, 10])
     plt.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'], loc='upper left')
     plt.subplot(2, 2, 4)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0] / aero_forces_n[:, 1], aero_forces_n_f[:, 0] / aero_forces_n_f[:, 1], aero_forces_m[:, 0] / aero_forces_m[:, 1], aero_forces_m_f[:, 0] / aero_forces_m_f[:, 1])))
@@ -599,8 +599,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     ax_inset = inset_axes(ax1, width="40%", height="30%", loc='upper left')
     ax_inset.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
     ax_inset.plot(time_steps, np.column_stack((h_n, h_n_m, h_m, h_m_m)))
-    ax_inset.set_xlim(0, 50)
-    ax_inset.set_ylim(298, 302)
+    ax_inset.set_xlim(50, 100)
+    ax_inset.set_ylim(240, 360)
     ax_inset.yaxis.set_label_position("right")
     ax_inset.yaxis.tick_right()
     # Create the second subplot for tracking error comparison
@@ -618,7 +618,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.savefig(pic_folder + "\\compare_tra_err_manu.png")
 
     # Plot y2
-    plt.figure()
+    plt.figure(figsize=(6, 6))
     plt.title("Normalized Maneuverability and Agility Comparison")
     half_time = int(time_steps.shape[0]/2)
     plt.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_m[half_time:], y2_m[half_time:], y2_m_m[half_time:])))
@@ -638,7 +638,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     lines = plt.plot(time_steps, np.column_stack((xi_n, xi_n_m, xi_m, xi_m_m)))
     plt.xlabel(r'$t$')
     plt.ylabel(r'$\xi$')
-    plt.legend(['Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'])
+    plt.legend(['Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'], loc='upper right')
     colors = [line.get_color() for line in lines]
     colors = np.tile(colors, (len(LGL_time), 1)).flatten()
     plt.scatter(np.tile(LGL_time, (4, 1)).T, np.column_stack((xi_n[LGL_indexes], xi_n_m[LGL_indexes], xi_m[LGL_indexes], xi_m_m[LGL_indexes])), s=scatter_size, color=colors)
@@ -686,7 +686,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.tight_layout()
     plt.savefig(pic_folder + "\\cmp_open_morphing_aeroderiv_manu.png")
 
-    plt.figure()
+    plt.figure(figsize=(10, 8))
     plt.title("Aerodynamic Forces and Moments")
     plt.subplot(2, 2, 1)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0], aero_forces_n_m[:, 0], aero_forces_m[:, 0], aero_forces_m_m[:, 0])))
@@ -700,7 +700,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.subplot(2, 2, 3)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 2], aero_forces_n_m[:, 2], aero_forces_m[:, 2], aero_forces_m_m[:, 2])))
     plt.ylabel(r'$M$')
-    plt.ylim([-20, 20])
+    plt.ylim([-10, 10])
     plt.legend(['Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'], loc='upper left')
     plt.subplot(2, 2, 4)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0] / aero_forces_n[:, 1], aero_forces_n_m[:, 0] / aero_forces_n_m[:, 1], aero_forces_m[:, 0] / aero_forces_m[:, 1], aero_forces_m_m[:, 0] / aero_forces_m_m[:, 1])))
@@ -744,13 +744,13 @@ def plot_comparison_open_morphing(pic_folder=None,
     ax1.set_title('Trajectory Comparison')
     ax1.legend(['Reference Trajectory', 'Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
     # Add an inset to the first subplot
-    ax_inset = inset_axes(ax1, width="40%", height="30%", loc='upper left')
-    ax_inset.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
-    ax_inset.plot(time_steps, np.column_stack((h_n, h_n_b, h_m, h_m_b)))
-    ax_inset.set_xlim(0, 50)
-    ax_inset.set_ylim(298, 302)
-    ax_inset.yaxis.set_label_position("right")
-    ax_inset.yaxis.tick_right()
+    # ax_inset = inset_axes(ax1, width="40%", height="30%", loc='upper left')
+    # ax_inset.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
+    # ax_inset.plot(time_steps, np.column_stack((h_n, h_n_b, h_m, h_m_b)))
+    # ax_inset.set_xlim(0, 50)
+    # ax_inset.set_ylim(298, 302)
+    # ax_inset.yaxis.set_label_position("right")
+    # ax_inset.yaxis.tick_right()
     # Create the second subplot for tracking error comparison
     err_n = np.sqrt((h_n-h_r)**2)
     err_n_b = np.sqrt((h_n_b-h_r)**2)
@@ -765,25 +765,42 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compare_tra_err_both.png")
 
-    # Plot fuel consumption
-    plt.figure()
-    plt.title("Normalized Fuel Consumption Comparison")
+    # # Plot fuel consumption
+    # plt.figure()
+    # plt.title("Normalized Fuel Consumption Comparison")
+    # half_time = int(time_steps.shape[0]/2)
+    # plt.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_b[0:half_time], y1_m[0:half_time], y1_m_b[0:half_time])))
+    # plt.xlabel(r'$t$')
+    # plt.ylabel('Fuel Consumption')
+    # plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    # plt.savefig(pic_folder + "\\cmp_fuel_consumption_both_.png")
+
+    # # Plot y2
+    # plt.figure()
+    # plt.title("Normalized Maneuverability and Agility Comparison")
+    # half_time = int(time_steps.shape[0]/2)
+    # plt.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_b[half_time:], y2_m[half_time:], y2_m_b[half_time:])))
+    # plt.xlabel(r'$t$')
+    # plt.ylabel('Maneuverability and agility index')
+    # plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    # plt.savefig(pic_folder + "\\cmp_y2_both.png")
+
+    # Plot y1 and y2
+    plt.figure(figsize=(12, 6))
+    plt.title("Normalized Subordinary Objectives Comparison")
+    plt.subplot(1, 2, 1)
     half_time = int(time_steps.shape[0]/2)
     plt.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_b[0:half_time], y1_m[0:half_time], y1_m_b[0:half_time])))
     plt.xlabel(r'$t$')
     plt.ylabel('Fuel Consumption')
     plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
-    plt.savefig(pic_folder + "\\cmp_fuel_consumption_both_.png")
-
-    # Plot y2
-    plt.figure()
-    plt.title("Normalized Maneuverability and Agility Comparison")
-    half_time = int(time_steps.shape[0]/2)
+    plt.subplot(1, 2, 2)
     plt.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_b[half_time:], y2_m[half_time:], y2_m_b[half_time:])))
     plt.xlabel(r'$t$')
     plt.ylabel('Maneuverability and agility index')
     plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
-    plt.savefig(pic_folder + "\\cmp_y2_both.png")
+    plt.tight_layout()
+    plt.savefig(pic_folder + "\\cmp_sub_both.png")
 
     # Plot control inputs
     plt.figure(figsize=(15, 5))
@@ -796,7 +813,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     lines = plt.plot(time_steps, np.column_stack((xi_n, xi_n_b, xi_m, xi_m_b)))
     plt.xlabel(r'$t$')
     plt.ylabel(r'$\xi$')
-    plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'], loc='upper right')
     colors = [line.get_color() for line in lines]
     colors = np.tile(colors, (len(LGL_time), 1)).flatten()
     plt.scatter(np.tile(LGL_time, (4, 1)).T, np.column_stack((xi_n[LGL_indexes], xi_n_b[LGL_indexes], xi_m[LGL_indexes], xi_m_b[LGL_indexes])), s=scatter_size, color=colors)
@@ -844,7 +861,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.tight_layout()
     plt.savefig(pic_folder + "\\cmp_open_morphing_aeroderiv_both.png")
 
-    plt.figure()
+    plt.figure(figsize=(10, 8))
     plt.title("Aerodynamic Forces and Moments")
     plt.subplot(2, 2, 1)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0], aero_forces_n_b[:, 0], aero_forces_m[:, 0], aero_forces_m_b[:, 0])))
@@ -858,7 +875,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     plt.subplot(2, 2, 3)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 2], aero_forces_n_b[:, 2], aero_forces_m[:, 2], aero_forces_m_b[:, 2])))
     plt.ylabel(r'$M$')
-    plt.ylim([-20, 20])
+    plt.ylim([-10, 10])
     plt.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'], loc='upper left')
     plt.subplot(2, 2, 4)
     plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0] / aero_forces_n[:, 1], aero_forces_n_b[:, 0] / aero_forces_n_b[:, 1], aero_forces_m[:, 0] / aero_forces_m[:, 1], aero_forces_m_b[:, 0] / aero_forces_m_b[:, 1])))
