@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     time_current = datetime.now().strftime('%m-%d-%H%M')
     dataset = OptimalDataset()
-    err_thr = 3000
+    err_thr = 0.01
     switch_time = 0.5
     high_heights = np.arange(start=350, stop=370, step=5)
     low_heights = np.arange(start=250, stop=230, step=-5)
