@@ -127,8 +127,8 @@ if __name__ == "__main__":
     dataset = OptimalDataset()
     err_thr = 3000
     switch_time = 0.5
-    high_heights = np.arange(start=350, stop=375, step=5)
-    low_heights = np.arange(start=250, stop=225, step=-5)
+    high_heights = np.arange(start=350, stop=370, step=5)
+    low_heights = np.arange(start=250, stop=230, step=-5)
     # high_heights = np.arange(start=350, stop=355, step=5)
     # low_heights = np.arange(start=250, stop=245, step=-5)
     pairs = []
