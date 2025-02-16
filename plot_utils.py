@@ -438,7 +438,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     # Plot figures comparing major and fuel
 
     # Plot trajectory comparison
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
     # Create the main plot for trajectory comparison
     ax1.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
     ax1.plot(time_steps, np.column_stack((h_n, h_n_f, h_m, h_m_f)))
@@ -465,6 +465,13 @@ def plot_comparison_open_morphing(pic_folder=None,
     ax2.set_ylabel(r'RMSE of $h$')
     ax2.set_title('Tracking Error Comparison')
     ax2.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    # Create the third subplot for fuel consumption comparison
+    ax3.set_title("Normalized Fuel Consumption Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax3.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_f[0:half_time], y1_m[0:half_time], y1_m_f[0:half_time])))
+    ax3.set_xlabel(r'$t$')
+    ax3.set_ylabel('Fuel Consumption')
+    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
     # Tight and save
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compar_fuel_tra_err.png")
@@ -586,7 +593,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     # Plot figures comparing major and manu
 
     # Plot trajectory comparison
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
     # Create the main plot for trajectory comparison
     ax1.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
     ax1.plot(time_steps, np.column_stack((h_n, h_n_m, h_m, h_m_m)))
@@ -613,6 +620,13 @@ def plot_comparison_open_morphing(pic_folder=None,
     ax2.set_ylabel(r'RMSE of $h$')
     ax2.set_title('Tracking Error Comparison')
     ax2.legend(['Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'])
+    # Create the third subplot for y2 comparison
+    ax3.set_title("Normalized Maneuverability and Agility Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax3.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_m[half_time:], y2_m[half_time:], y2_m_m[half_time:])))
+    ax3.set_xlabel(r'$t$')
+    ax3.set_ylabel('Maneuverability and agility index')
+    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
     # Tight and save
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compare_tra_err_manu.png")
@@ -734,15 +748,15 @@ def plot_comparison_open_morphing(pic_folder=None,
     # Plot figures comparing major and both
 
     # Plot trajectory comparison
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
     # Create the main plot for trajectory comparison
-    ax1.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
-    ax1.plot(time_steps, np.column_stack((h_n, h_n_b, h_m, h_m_b)))
-    ax1.set_ylim([200, 400])
-    ax1.set_xlabel(r'$t$')
-    ax1.set_ylabel(r'$h$')
-    ax1.set_title('Trajectory Comparison')
-    ax1.legend(['Reference Trajectory', 'Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    # ax1.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
+    # ax1.plot(time_steps, np.column_stack((h_n, h_n_b, h_m, h_m_b)))
+    # ax1.set_ylim([200, 400])
+    # ax1.set_xlabel(r'$t$')
+    # ax1.set_ylabel(r'$h$')
+    # ax1.set_title('Trajectory Comparison')
+    # ax1.legend(['Reference Trajectory', 'Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
     # Add an inset to the first subplot
     # ax_inset = inset_axes(ax1, width="40%", height="30%", loc='upper left')
     # ax_inset.plot(time_steps, h_r, c='k', linestyle='--', linewidth=1.5)
@@ -751,16 +765,31 @@ def plot_comparison_open_morphing(pic_folder=None,
     # ax_inset.set_ylim(298, 302)
     # ax_inset.yaxis.set_label_position("right")
     # ax_inset.yaxis.tick_right()
-    # Create the second subplot for tracking error comparison
+    # Create the first subplot for tracking error comparison
     err_n = np.sqrt((h_n-h_r)**2)
     err_n_b = np.sqrt((h_n_b-h_r)**2)
     err_m = np.sqrt((h_m-h_r)**2)
     err_m_b = np.sqrt((h_m_b-h_r)**2)
-    ax2.plot(time_steps, np.column_stack((np.cumsum(err_n), np.cumsum(err_n_b), np.cumsum(err_m), np.cumsum(err_m_b))))
+    ax1.plot(time_steps, np.column_stack((np.cumsum(err_n), np.cumsum(err_n_b), np.cumsum(err_m), np.cumsum(err_m_b))))
+    ax1.set_xlabel(r'$t$')
+    ax1.set_ylabel(r'RMSE of $h$')
+    ax1.set_title('Tracking Error Comparison')
+    ax1.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    # Create the second subplot for fuel consumption comparison
+    ax2.set_title("Normalized Fuel Consumption Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax2.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_b[0:half_time], y1_m[0:half_time], y1_m_b[0:half_time])))
     ax2.set_xlabel(r'$t$')
-    ax2.set_ylabel(r'RMSE of $h$')
-    ax2.set_title('Tracking Error Comparison')
-    ax2.legend(['Fixed', 'Fixed-B', 'Morphing', 'Morphing-B'])
+    ax2.set_ylabel('Fuel Consumption')
+    ax2.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    # Create the third subplot for y2 comparison
+    ax3.set_title("Normalized Maneuverability and Agility Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax3.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_b[half_time:], y2_m[half_time:], y2_m_b[half_time:])))
+    ax3.set_xlabel(r'$t$')
+    ax3.set_ylabel('Maneuverability and agility index')
+    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+
     # Tight and save
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compare_tra_err_both.png")
