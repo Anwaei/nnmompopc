@@ -60,27 +60,27 @@ class OptimalModule(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(32, 3)
         )
-        self.q_block = nn.Sequential(
-            nn.Linear(self.hidden_dim, self.q_dim),
-            # nn.LeakyReLU(),
-            # nn.Linear(self.q_dim, self.q_dim),
-            # nn.LeakyReLU(),
-            nn.Linear(self.q_dim, self.q_dim)
-        )
-        self.k_block = nn.Sequential(
-            nn.Linear(1, self.k_dim),
-            # nn.LeakyReLU(),
-            # nn.Linear(self.k_dim, self.k_dim),
-            # nn.LeakyReLU(),
-            nn.Linear(self.k_dim, self.k_dim)
-        )
-        self.v_block = nn.Sequential(
-            nn.Linear(1, self.v_dim),
-            # nn.LeakyReLU(),
-            # nn.Linear(self.v_dim, self.v_dim),
-            # nn.LeakyReLU(),
-            nn.Linear(self.v_dim, self.v_dim)
-        )
+        # self.q_block = nn.Sequential(
+        #     nn.Linear(self.hidden_dim, self.q_dim),
+        #     # nn.LeakyReLU(),
+        #     # nn.Linear(self.q_dim, self.q_dim),
+        #     # nn.LeakyReLU(),
+        #     nn.Linear(self.q_dim, self.q_dim)
+        # )
+        # self.k_block = nn.Sequential(
+        #     nn.Linear(1, self.k_dim),
+        #     # nn.LeakyReLU(),
+        #     # nn.Linear(self.k_dim, self.k_dim),
+        #     # nn.LeakyReLU(),
+        #     nn.Linear(self.k_dim, self.k_dim)
+        # )
+        # self.v_block = nn.Sequential(
+        #     nn.Linear(1, self.v_dim),
+        #     # nn.LeakyReLU(),
+        #     # nn.Linear(self.v_dim, self.v_dim),
+        #     # nn.LeakyReLU(),
+        #     nn.Linear(self.v_dim, self.v_dim)
+        # )
         self.control_skip_layer = nn.Sequential(
             nn.Linear(self.aux_states_dim, 32),
             nn.LeakyReLU(),
@@ -97,23 +97,24 @@ class OptimalModule(nn.Module):
         # hidden = self.state_fc_block(aux_states) + self.skip_layer(aux_states)  # n_batch*d_hidden
 
         # Attention flow
-        query = self.q_block(hidden)  # n_batch*d_q
-        query = torch.unsqueeze(query, dim=1)  # n_batch*1*d_q
-        key = self.k_block(h_r)  # n_batch*step_num*d_k
-        value = self.v_block(h_r)  # n_batch*step_num*d_v
-        # d_q == d_k, then
-        score = torch.matmul(query, torch.transpose(key, 1, 2))/np.sqrt(self.q_dim)  # n_batch*1*step_num
-        # time_index = int(time/self.dt)
-        # score[0:time_index] = -1e8  # mask
-        score = score + mask_mat
-        score = torch.softmax(score, dim=2)  # n_batch*1*step_num
-        # torch.nn.MultiheadAttention()
-        att_out = torch.matmul(score, value)  # n_batch*1*d_v
-        att_out = torch.squeeze(att_out, dim=1)  # n_batch*d_v
+        # query = self.q_block(hidden)  # n_batch*d_q
+        # query = torch.unsqueeze(query, dim=1)  # n_batch*1*d_q
+        # key = self.k_block(h_r)  # n_batch*step_num*d_k
+        # value = self.v_block(h_r)  # n_batch*step_num*d_v
+        # # d_q == d_k, then
+        # score = torch.matmul(query, torch.transpose(key, 1, 2))/np.sqrt(self.q_dim)  # n_batch*1*step_num
+        # # time_index = int(time/self.dt)
+        # # score[0:time_index] = -1e8  # mask
+        # score = score + mask_mat
+        # score = torch.softmax(score, dim=2)  # n_batch*1*step_num
+        # # torch.nn.MultiheadAttention()
+        # att_out = torch.matmul(score, value)  # n_batch*1*d_v
+        # att_out = torch.squeeze(att_out, dim=1)  # n_batch*d_v
 
         # r_info = self.ref_fc_block(h_r)
         # time_info = self.time_fc_block(time)
-        output = self.control_fc_block(torch.cat((hidden, att_out), dim=1))
+        # output = self.control_fc_block(torch.cat((hidden, att_out), dim=1))
+        output = self.control_fc_block(hidden)
         # output = self.control_fc_block(torch.cat((hidden, att_out), dim=1)) + self.control_skip_layer(aux_states)
         return output
     
