@@ -1554,6 +1554,33 @@ def test_collect_points(N=8):
 
     plt.show()
 
+def plot_compare_net(loss_data):
+    loss_data_vanilla_train = loss_data['vanilla_train']
+    loss_data_vanilla_test = loss_data['vanilla_test']
+    loss_data_attention_train = loss_data['attention_train']
+    loss_data_attention_test = loss_data['attention_test']
+
+    last_step = 1000
+    steps = np.arange(last_step)
+
+    plt.figure()
+    plt.plot(steps, loss_data_vanilla_train[:last_step], label='Vanilla Net', color='blue', linestyle='-')
+    plt.plot(steps, loss_data_attention_train[:last_step], label='Attention Net', color='red', linestyle='--')
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    plt.title('Training Loss Comparison')
+    plt.legend()
+
+    plt.figure()
+    plt.plot(steps, loss_data_vanilla_test[:last_step], label='Vanilla Net', color='blue', linestyle='-')
+    plt.plot(steps, loss_data_attention_test[:last_step], label='Attention Net', color='red', linestyle='--')
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    plt.title('Test Loss Comparison')
+    plt.legend()
+
+    plt.show()
+
 
 if __name__ == "__main__":
     test_aerodynamic_coefficient()
