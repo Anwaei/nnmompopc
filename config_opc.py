@@ -158,8 +158,8 @@ TIME_DIM = 1
 REF_DIM = 10001
 Q_DIM = 64
 K_DIM = 64
-# V_DIM = 64
-V_DIM = 0
+V_DIM = 64
+# V_DIM = 0
 
 LEARNING_RATE = 0.006
 MOMENTUM = 0.9
@@ -173,6 +173,7 @@ STAT_PATH = 'data/opt_stats_02-14-1100.npz'
 # NET_PATH = 'model/net_08-26-2042/epoch_443.pth'
 NET_PATH = 'model/net_02-14-1904/epoch_848.pth'
 NET_PATH = 'model/net_02-14-1054/epoch_980.pth'
+NET_PATH = 'model/net_02-16-2045/epoch_986.pth'
 
 PARA_WP = 0.01
 PARA_WN = 1
