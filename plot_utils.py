@@ -1572,8 +1572,8 @@ def plot_compare_net(loss_data):
     plt.legend()
 
     plt.figure()
-    plt.plot(steps, loss_data_vanilla_test[:last_step], label='Vanilla Net', color='blue', linestyle='-')
-    plt.plot(steps, loss_data_attention_test[:last_step], label='Attention Net', color='red', linestyle='--')
+    plt.plot(steps, loss_data_vanilla_test[:last_step], label='Vanilla Net', color='#0072BD', linestyle='solid')
+    plt.plot(steps, loss_data_attention_test[:last_step], label='Attention Net', color='#D95319', linestyle='dashed')
     plt.xlabel('Steps')
     plt.ylabel('Loss')
     plt.title('Test Loss Comparison')
