@@ -16,29 +16,37 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compare net efficiency.')
     parser.add_argument('--folder_vanilla_train_loss', type=str, default='runs/run_02-17-1714/loss_train')
     parser.add_argument('--folder_vanilla_test_loss', type=str, default='runs/run_02-17-1714/loss_test')
+    parser.add_argument('--folder_residual_train_loss', type=str, default='runs/run_02-16-2045/loss_train')
+    parser.add_argument('--folder_residual_test_loss', type=str, default='runs/run_02-16-2045/loss_test')
     parser.add_argument('--folder_attention_train_loss', type=str, default='runs/run_02-14-1054/loss_train')
     parser.add_argument('--folder_attention_test_loss', type=str, default='runs/run_02-14-1054/loss_test')
     args = parser.parse_args()
 
     folder_vanilla_train_loss = args.folder_vanilla_train_loss
     folder_vanilla_test_loss = args.folder_vanilla_test_loss
+    folder_residual_train_loss = args.folder_residual_train_loss
+    folder_residual_test_loss = args.folder_residual_test_loss
     folder_attention_train_loss = args.folder_attention_train_loss
     folder_attention_test_loss = args.folder_attention_test_loss
 
     loss_data_vanilla_train = read_loss_from_tensorboard(folder_vanilla_train_loss)
     loss_data_vanilla_test = read_loss_from_tensorboard(folder_vanilla_test_loss)
+    loss_data_residual_train = read_loss_from_tensorboard(folder_residual_train_loss)
+    loss_data_residual_test = read_loss_from_tensorboard(folder_residual_test_loss)
     loss_data_attention_train = read_loss_from_tensorboard(folder_attention_train_loss)
     loss_data_attention_test = read_loss_from_tensorboard(folder_attention_test_loss)
 
     loss_data = {
         'vanilla_train': loss_data_vanilla_train,
         'vanilla_test': loss_data_vanilla_test,
+        'residual_train': loss_data_residual_train,
+        'residual_test': loss_data_residual_test,
         'attention_train': loss_data_attention_train,
         'attention_test': loss_data_attention_test
     }
 
     pu.plot_compare_net(loss_data=loss_data)
 
-    print(loss_data)
+    # print(loss_data)
 
     pass

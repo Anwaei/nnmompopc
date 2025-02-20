@@ -6,6 +6,7 @@ import os
 import config_opc
 import optimal as opt
 import dynamics2 as dyn
+from scipy.signal import savgol_filter
 
 def plot_trajectory_origin(x_all, u_all, j_all, ref_trajectory):
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
@@ -1555,27 +1556,55 @@ def test_collect_points(N=8):
     plt.show()
 
 def plot_compare_net(loss_data):
-    loss_data_vanilla_train = loss_data['vanilla_train']
-    loss_data_vanilla_test = loss_data['vanilla_test']
-    loss_data_attention_train = loss_data['attention_train']
-    loss_data_attention_test = loss_data['attention_test']
-
     last_step = 1000
     steps = np.arange(last_step)
+    labels = ['vanilla_train', 'vanilla_test', 'residual_train', 'residual_test', 'attention_train', 'attention_test']
+    loss_data_set = dict()
+    loss_data_original_set = dict()
+    loss_data_smooth_set = dict()
+    for label in labels:
+        loss_data_set[label] = loss_data[label]
+        loss_data_original_set[label] = loss_data[label][:last_step]
+        loss_data_smooth_set[label] = savgol_filter(loss_data[label][:last_step], window_length=15, polyorder=5)
+        loss_data_smooth_set[label][0:10] = loss_data_original_set[label][0:10]
+   
 
+    loss_data_vanilla_train_original = loss_data_original_set['vanilla_train']
+    loss_data_residual_train_original = loss_data_original_set['residual_train']
+    loss_data_attention_train_original = loss_data_original_set['attention_train']
+    loss_data_vanilla_test_original = loss_data_original_set['vanilla_test']
+    loss_data_residual_test_original = loss_data_original_set['residual_test']
+    loss_data_attention_test_original = loss_data_original_set['attention_test']
+    loss_data_vanilla_train_smooth = loss_data_smooth_set['vanilla_train']
+    loss_data_residual_train_smooth = loss_data_smooth_set['residual_train']
+    loss_data_attention_train_smooth = loss_data_smooth_set['attention_train']
+    loss_data_vanilla_test_smooth = loss_data_smooth_set['vanilla_test']
+    loss_data_residual_test_smooth = loss_data_smooth_set['residual_test']
+    loss_data_attention_test_smooth = loss_data_smooth_set['attention_test']
+    
     plt.figure()
-    plt.plot(steps, loss_data_vanilla_train[:last_step], label='Vanilla Net', color='blue', linestyle='-')
-    plt.plot(steps, loss_data_attention_train[:last_step], label='Attention Net', color='red', linestyle='--')
+    plt.plot(steps, loss_data_vanilla_train_original, color='#0072BD', linestyle='-', alpha=0.2)
+    plt.plot(steps, loss_data_vanilla_train_smooth, label='Vanilla Net', color='#0072BD', linestyle='-')
+    plt.plot(steps, loss_data_residual_train_original, color='#EDB120', linestyle='--', alpha=0.2)
+    plt.plot(steps, loss_data_residual_train_smooth, label='Residual Net', color='#EDB120', linestyle='--')
+    plt.plot(steps, loss_data_attention_train_original, color='#D95319', linestyle='--', alpha=0.2)
+    plt.plot(steps, loss_data_attention_train_smooth, label='Attention Net', color='#D95319', linestyle='-.')
     plt.xlabel('Steps')
     plt.ylabel('Loss')
+    plt.ylim([0, 0.0025])
     plt.title('Training Loss Comparison')
     plt.legend()
 
     plt.figure()
-    plt.plot(steps, loss_data_vanilla_test[:last_step], label='Vanilla Net', color='#0072BD', linestyle='solid')
-    plt.plot(steps, loss_data_attention_test[:last_step], label='Attention Net', color='#D95319', linestyle='dashed')
+    plt.plot(steps, loss_data_vanilla_test_original, color='#0072BD', linestyle='solid', alpha=0.2)
+    plt.plot(steps, loss_data_vanilla_test_smooth, label='Vanilla Net', color='#0072BD', linestyle='-')
+    plt.plot(steps, loss_data_residual_test_original, color='#EDB120', linestyle='dashed', alpha=0.2)
+    plt.plot(steps, loss_data_residual_test_smooth, label='Residual Net', color='#EDB120', linestyle='--')
+    plt.plot(steps, loss_data_attention_test_original, color='#D95319', linestyle='dashed', alpha=0.2)
+    plt.plot(steps, loss_data_attention_test_smooth, label='Attention Net', color='#D95319', linestyle='-.')
     plt.xlabel('Steps')
     plt.ylabel('Loss')
+    plt.ylim([0, 0.0025])
     plt.title('Test Loss Comparison')
     plt.legend()
 

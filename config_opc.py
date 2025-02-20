@@ -168,8 +168,10 @@ TRAIN_PROP = 0.8
 EPOCHES = 1000
 
 #
-DATA_PATH = 'data/opt_data_02-14-1100.pt'
-STAT_PATH = 'data/opt_stats_02-14-1100.npz'
+# DATA_PATH = 'data/opt_data_02-14-1100.pt'
+# STAT_PATH = 'data/opt_stats_02-14-1100.npz'
+DATA_PATH = 'data/opt_data_02-18-1434.pt'
+STAT_PATH = 'data/opt_stats_02-18-1434.npz'
 # NET_PATH = 'model/net_08-26-2042/epoch_443.pth'
 NET_PATH = 'model/net_02-14-1904/epoch_848.pth'
 NET_PATH = 'model/net_02-14-1054/epoch_980.pth'
