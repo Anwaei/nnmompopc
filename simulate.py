@@ -184,8 +184,6 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
             print(f"Simulation step: {k}/{step_all}")
 
         if control_method == "nn":
-            if k == 250:
-                pass
             if trajectory_opt is not None:
                 x_normalized = (trajectory_opt[0][k, :]-x_mean)/x_std
                 y_normalized = (trajectory_opt[1][k, :]-y_mean)/y_std

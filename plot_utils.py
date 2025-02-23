@@ -1107,6 +1107,161 @@ def plot_comparison_open_morphing(pic_folder=None,
     if shown:
         plt.show()
 
+def plot_comparison_close(pic_folder=None, 
+                          result_nomorphing=None, 
+                          result_morphing_both=None,
+                          result_net=None,
+                          trajectory_ref=None,
+                          shown=True):
+    h_r = trajectory_ref['h_r_seq']
+    x_n, y_n, z_n, u_n, j_f_n, aero_info_n = result_nomorphing
+    x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = result_morphing_both
+    x_net, y_net, z_net, u_net, j_f_net, aero_info_net = result_net
+
+    time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
+
+    V_n = x_n[:, 0]
+    alpha_n = x_n[:, 1]
+    q_n = x_n[:, 2]
+    theta_n = x_n[:, 3]
+    h_n = x_n[:, 4]
+    de_n = u_n[:, 0]
+    T_n = u_n[:, 1]
+    xi_n = u_n[:, 2]
+    y1_n = y_n[:, 0]
+    y2_n = y_n[:, 1]
+    V_m_b = x_m_b[:, 0]
+    alpha_m_b = x_m_b[:, 1]
+    q_m_b = x_m_b[:, 2]
+    theta_m_b = x_m_b[:, 3]
+    h_m_b = x_m_b[:, 4]
+    de_m_b = u_m_b[:, 0]
+    T_m_b = u_m_b[:, 1]
+    xi_m_b = u_m_b[:, 2]
+    y1_m_b = y_m_b[:, 0]
+    y2_m_b = y_m_b[:, 1]
+    V_net = x_net[:, 0]
+    alpha_net = x_net[:, 1]
+    q_net = x_net[:, 2]
+    theta_net = x_net[:, 3]
+    h_net = x_net[:, 4]
+    de_net = u_net[:, 0]
+    T_net = u_net[:, 1]
+    xi_net = u_net[:, 2]
+    y1_net = y_net[:, 0]
+    y2_net = y_net[:, 1]
+
+    # Plot objectives comparison
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+    # Create the first subplot for tracking error comparison
+    err_n = np.sqrt((h_n-h_r)**2)
+    err_m_b = np.sqrt((h_m_b-h_r)**2)
+    err_net = np.sqrt((h_net-h_r)**2)
+    ax1.plot(time_steps, np.column_stack((np.cumsum(err_n), np.cumsum(err_m_b), np.cumsum(err_net))))
+    ax1.set_xlabel(r'$t$')
+    ax1.set_ylabel(r'RMSE of $h$')
+    ax1.set_title('Tracking Error Comparison')
+    ax1.legend(['Fixed', 'Morphing-B', 'Morphing-Net'])
+    # Create the second subplot for fuel consumption comparison
+    ax2.set_title("Normalized Fuel Consumption Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax2.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_m_b[0:half_time], y1_net[0:half_time])))
+    ax2.set_xlabel(r'$t$')
+    ax2.set_ylabel('Fuel Consumption')
+    ax2.legend(['Fixed', 'Morphing-B', 'Morphing-Net'])
+    # Create the third subplot for y2 comparison
+    ax3.set_title("Normalized Maneuverability and Agility Comparison")
+    half_time = int(time_steps.shape[0]/2)
+    ax3.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_m_b[half_time:], y2_net[half_time:])))
+    ax3.set_xlabel(r'$t$')
+    ax3.set_ylabel('Maneuverability and agility index')
+    ax3.legend(['Fixed', 'Morphing-B', 'Morphing-Net'])
+    # Tight and save
+    plt.tight_layout()
+    plt.savefig(pic_folder + "\\compare_obj.png")
+
+    # Plot control inputs
+    plt.figure(figsize=(15, 5))
+    t_switch = trajectory_ref['t_switch']
+    LGL_points = opt.calculate_LGL_points(config_opc.PARA_N_LGL_AGGRE)
+    LGL_indexes, LGL_time = opt.calculate_LGL_indexes(LGL_points, t_switch)
+    scatter_size = 15
+    plt.title("Control Inputs Comparison")
+    plt.subplot(1, 3, 1)
+    lines = plt.plot(time_steps, np.column_stack((xi_n, xi_m_b, xi_net)))
+    plt.xlabel(r'$t$')
+    plt.ylabel(r'$\xi$')
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'], loc='upper right')
+    colors = [line.get_color() for line in lines[0:2]]
+    colors = np.tile(colors, (len(LGL_time), 1)).flatten()
+    plt.scatter(np.tile(LGL_time, (2, 1)).T, np.column_stack((xi_n[LGL_indexes], xi_m_b[LGL_indexes])), s=scatter_size, color=colors)
+    plt.subplot(1, 3, 2)
+    lines = plt.plot(time_steps, np.column_stack((T_n, T_m_b, T_net)))
+    plt.xlabel(r'$t$')
+    plt.ylabel(r'$T$')
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'])
+    colors = [line.get_color() for line in lines[0:2]]
+    colors = np.tile(colors, (len(LGL_time), 1)).flatten()
+    plt.scatter(np.tile(LGL_time, (2, 1)).T, np.column_stack((T_n[LGL_indexes], T_m_b[LGL_indexes])), s=scatter_size, color=colors)
+    plt.subplot(1, 3, 3)
+    lines = plt.plot(time_steps, np.column_stack((de_n, de_m_b, de_net)))
+    plt.xlabel(r'$t$')
+    plt.ylabel(r'$\delta_e$')
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'])
+    colors = [line.get_color() for line in lines[0:2]]
+    colors = np.tile(colors, (len(LGL_time), 1)).flatten()
+    plt.scatter(np.tile(LGL_time, (2, 1)).T, np.column_stack((de_n[LGL_indexes], de_m_b[LGL_indexes])), s=scatter_size, color=colors)
+    plt.tight_layout()
+    plt.savefig(pic_folder + "\\cmp_control_inputs.png")
+
+    # Plot aerodynamic info
+
+    aero_forces_n, aero_deriv_n, angle_deg_n = aero_info_n
+    aero_forces_m_b, aero_deriv_m_b, angle_deg_m_b = aero_info_m_b
+    aero_forces_net, aero_deriv_net, angle_deg_net = aero_info_net
+
+    plt.figure(figsize=(10, 8))
+    plt.title("Aerodynamic Forces and Moments")
+    plt.subplot(2, 2, 1)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0],  aero_forces_m_b[:, 0], aero_forces_net[:, 0])))
+    plt.ylabel(r'$L$')
+    plt.ylim([50, 200])
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'], loc='upper left')
+    plt.subplot(2, 2, 2)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 1], aero_forces_m_b[:, 1], aero_forces_net[:, 1])))
+    plt.ylabel(r'$D$')
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'], loc='upper left')
+    plt.subplot(2, 2, 3)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 2], aero_forces_m_b[:, 2], aero_forces_net[:, 2])))
+    plt.ylabel(r'$M$')
+    plt.ylim([-10, 10])
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'], loc='upper left')
+    plt.subplot(2, 2, 4)
+    plt.plot(time_steps, np.column_stack((aero_forces_n[:, 0] / aero_forces_n[:, 1], aero_forces_m_b[:, 0] / aero_forces_m_b[:, 1], aero_forces_net[:, 0] / aero_forces_net[:, 1])))
+    plt.ylabel(r'$L/D$')
+    plt.legend(['Fixed', 'Morphing-B', 'Morphing-Net'], loc='upper left')
+    plt.tight_layout()
+    plt.savefig(pic_folder + "\\cmp_aeroforces.png")
+
+    print("Tracking error:")
+    print(f"n: {np.sum(err_n)}")
+    print(f"m_b: {np.sum(err_m_b)}")
+    print(f"net: {np.sum(err_net)}")
+    print("Fuel consumption:")
+    print(f"n: {y1_n[half_time]}")
+    print(f"m_b: {y1_m_b[half_time]}")
+    print(f"net: {y1_net[half_time]}")
+    print("Normaized z:")
+    print(f"n: {z_n[-1]}")
+    print(f"m_b: {z_m_b[-1]}")
+    print(f"net: {z_net[-1]}")
+    print("Final objectives:")
+    print(f"n: {j_f_n}")
+    print(f"m_b: {j_f_m_b}")
+    print(f"net: {j_f_net}")
+
+    if shown:
+        plt.show()
 
 def test_aerodynamic_coefficient():
     alpha = np.arange(start=-10, step=0.1, stop=20)  # deg
@@ -1591,7 +1746,7 @@ def plot_compare_net(loss_data):
     plt.plot(steps, loss_data_attention_train_smooth, label='Attention Net', color='#D95319', linestyle='-.')
     plt.xlabel('Steps')
     plt.ylabel('Loss')
-    plt.ylim([0, 0.0025])
+    plt.ylim([0, 0.0015])
     plt.title('Training Loss Comparison')
     plt.legend()
 
@@ -1604,7 +1759,7 @@ def plot_compare_net(loss_data):
     plt.plot(steps, loss_data_attention_test_smooth, label='Attention Net', color='#D95319', linestyle='-.')
     plt.xlabel('Steps')
     plt.ylabel('Loss')
-    plt.ylim([0, 0.0025])
+    plt.ylim([0, 0.0015])
     plt.title('Test Loss Comparison')
     plt.legend()
 
