@@ -104,6 +104,18 @@ def save_statistics(dataset, time_stamp):
              h_r_mean=dataset.h_r_mean, h_r_std=dataset.h_r_std)
     return
 
+def reload_data(dataset_path):
+    dataset = torch.load(dataset_path)
+    x_all = dataset.x_all
+    y_all = dataset.y_all
+    z_all = dataset.z_all
+    x_original = x_all*dataset.x_std + dataset.x_mean
+    y_original = y_all*dataset.y_std + dataset.y_mean
+    z_original = z_all*dataset.z_std + dataset.z_mean
+    t_o = [x_original, y_original, z_original]
+    return t_o
+
+
 if __name__ == "__main__":
 
     # switch_time = 0.5
@@ -138,7 +150,7 @@ if __name__ == "__main__":
         for l in low_heights:
             tra_ref = simu.generate_ref_trajectory_varying(switch_time=switch_time, high_height=h, low_height=l)
             # x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_casadi(x0=config_opc.PARA_X0, trajectory_ref=tra_ref)
-            x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_scaled(x0=config_opc.PARA_X0,trajectory_ref=tra_ref, morphing_disabled=None, fun_obj=opt.function_objective_both)
+            x_optimal, y_optimal, z_optimal, u_optimal, j_optimal = opt.generate_PS_solution_scaled(x0=config_opc.PARA_X0,trajectory_ref=tra_ref, morphing_disabled=None, fun_obj=opt.function_objective)
             t, x, y, z, u = opt.interpolate_optimal_trajectory(x_optimal, y_optimal, z_optimal, u_optimal, j_optimal, t_switch=tra_ref["t_switch"], from_scaled=True)
             x_all_simu, y_all_simu, z_all_simu, u_all_simu, j_f_simu, aero_info = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="given", given_input=u)
             if j_f_simu[0] < err_thr:

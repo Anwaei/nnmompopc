@@ -35,7 +35,7 @@ if __name__ == '__main__':
     # h_r_seq = tra_ref['h_r_seq']
     # time_steps = tra_ref['time_steps']
 
-    file_folder_m_b = "pics/results_open_20250210-0038_0"
+    file_folder_m_b = "pics/results_open_20250210-0038_14"
     with np.load(f'{file_folder_m_b}\\data_morphing_both.npz') as data_morphing_both:
                     keys = ['x_m_b', 'y_m_b', 'z_m_b', 'u_m_b', 'j_f_m_b', 'aero_info_m_b']
                     results_m_b = [data_morphing_both[key] for key in keys]

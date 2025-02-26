@@ -176,6 +176,7 @@ STAT_PATH = 'data/opt_stats_02-22-2343.npz'
 NET_PATH = 'model/net_02-14-1904/epoch_848.pth'
 NET_PATH = 'model/net_02-14-1054/epoch_980.pth'
 NET_PATH = 'model/net_02-16-2045/epoch_986.pth'
+NET_PATH = 'model/net_02-23-2329/epoch_999.pth'
 
 PARA_WP = 0.01
 PARA_WN = 1

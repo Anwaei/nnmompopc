@@ -11,6 +11,6 @@ def reload_data(dataset_path):
         print(f"{attr}: {value}")
 
 if __name__ == "__main__":
-    dataset_path = "data/opt_data_02-14-1100.pt"
+    dataset_path = "data/opt_data_02-22-2343.pt"
     reload_data(dataset_path)
 
