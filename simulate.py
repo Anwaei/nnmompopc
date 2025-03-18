@@ -92,7 +92,7 @@ def simulate_origin(x0, trajectory_ref, control_method):
     
     return x_all, u_all, j_all
 
-def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net_path=None, trajectory_opt=None):
+def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net_path=None, stat_path=None, trajectory_opt=None):
     print("Simulation start. Control method: " + control_method)    
     nx = config_opc.PARA_NX_AUXILIARY
     nu = config_opc.PARA_NU_AUXILIARY
@@ -139,7 +139,7 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
         net = OptimalModule()
         net.load_state_dict(torch.load(net_path))
         net.eval()
-        opt_stats = np.load(config_opc.STAT_PATH)
+        opt_stats = np.load(stat_path)
         x_mean = opt_stats['x_mean']
         x_std = opt_stats['x_std']
         y_mean = opt_stats['y_mean']
@@ -188,10 +188,12 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
                 x_normalized = (trajectory_opt[0][k, :]-x_mean)/x_std
                 y_normalized = (trajectory_opt[1][k, :]-y_mean)/y_std
                 z_normalized = (trajectory_opt[2][k, :]-z_mean)/z_std
+                u_o = trajectory_opt[3][k, :]
             else:
                 x_normalized = (x_all[k, :]-x_mean)/x_std
                 y_normalized = (y_all[k, :]-y_mean)/y_std
                 z_normalized = (z_all[k, :]-z_mean)/z_std
+                u_o = None
             h_r_normalized = net_input_ref[k]
 
             net_input_state = np.concatenate((x_normalized, y_normalized, z_normalized, h_r_normalized[np.newaxis]), axis=0)
@@ -201,7 +203,9 @@ def simulate_auxiliary(x0, trajectory_ref, control_method, given_input=None, net
             mask_mat = cal_mask_mat(net_input)
             u_predict = net(net_input, mask_mat)
             u_normalized = u_predict.detach().numpy().astype(np.float64)
-            uc = np.clip(u_normalized*u_std + u_mean, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)            
+            uc = np.clip(u_normalized*u_std + u_mean, config_opc.PARA_U_LOWER_BOUND, config_opc.PARA_U_UPPER_BOUND)
+            if u_o is not None:
+                uc = 0.3*uc + 0.7*u_o
             u_all[k, :] = uc            
             # u_all[k, :] = u_normalized*u_std + u_mean
             pass

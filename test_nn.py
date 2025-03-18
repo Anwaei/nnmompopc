@@ -9,11 +9,11 @@ import plot_utils as pu
 from calculate_utils import cal_mask_mat
 
 if __name__ == '__main__':
-    net_path = config_opc.NET_PATH
+    net_path = 'model/net_02-23-2329/epoch_996.pth'
     net = OptimalModule()
     net.load_state_dict(torch.load(net_path))
     net.eval()
-    opt_stats = np.load(config_opc.STAT_PATH)
+    opt_stats = np.load('data/opt_stats_02-22-2343.npz')
     x_mean = opt_stats['x_mean']
     x_std = opt_stats['x_std']
     y_mean = opt_stats['y_mean']

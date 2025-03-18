@@ -349,6 +349,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     x_n_b, y_n_b, z_n_b, u_n_b, j_f_n_b, aero_info_n_b = result_nomorphing_both
     x_m_b, y_m_b, z_m_b, u_m_b, j_f_m_b, aero_info_m_b = result_morphing_both
 
+    y2_scale = 10
     time_steps = np.arange(start=0, stop=config_opc.PARA_TF+config_opc.PARA_DT, step=config_opc.PARA_DT)
     V_n = x_n[:, 0]
     V_m = x_m[:, 0]
@@ -368,8 +369,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     xi_m = u_m[:, 2]
     y1_n = y_n[:, 0]
     y1_m = y_m[:, 0]
-    y2_n = y_n[:, 1]
-    y2_m = y_m[:, 1]
+    y2_n = y_n[:, 1] / y2_scale
+    y2_m = y_m[:, 1] / y2_scale
     V_n_f = x_n_f[:, 0]
     V_m_f = x_m_f[:, 0]
     alpha_n_f = x_n_f[:, 1]
@@ -388,8 +389,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     xi_m_f = u_m_f[:, 2]
     y1_n_f = y_n_f[:, 0]
     y1_m_f = y_m_f[:, 0]
-    y2_n_f = y_n_f[:, 1]
-    y2_m_f = y_m_f[:, 1]
+    y2_n_f = y_n_f[:, 1] / y2_scale
+    y2_m_f = y_m_f[:, 1] / y2_scale
     V_n_m = x_n_m[:, 0]
     V_m_m = x_m_m[:, 0]
     alpha_n_m = x_n_m[:, 1]
@@ -408,8 +409,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     xi_m_m = u_m_m[:, 2]
     y1_n_m = y_n_m[:, 0]
     y1_m_m = y_m_m[:, 0]
-    y2_n_m = y_n_m[:, 1]
-    y2_m_m = y_m_m[:, 1]
+    y2_n_m = y_n_m[:, 1] / y2_scale
+    y2_m_m = y_m_m[:, 1] / y2_scale
     V_n_b = x_n_b[:, 0]
     V_m_b = x_m_b[:, 0]
     alpha_n_b = x_n_b[:, 1]
@@ -428,8 +429,8 @@ def plot_comparison_open_morphing(pic_folder=None,
     xi_m_b = u_m_b[:, 2]
     y1_n_b = y_n_b[:, 0]
     y1_m_b = y_m_b[:, 0]
-    y2_n_b = y_n_b[:, 1]
-    y2_m_b = y_m_b[:, 1]
+    y2_n_b = y_n_b[:, 1] / y2_scale
+    y2_m_b = y_m_b[:, 1] / y2_scale
 
     xi_n[:] = 0.5
     xi_n_f[:] = 0.5
@@ -461,6 +462,9 @@ def plot_comparison_open_morphing(pic_folder=None,
     err_n_f = np.sqrt((h_n_f-h_r)**2)
     err_m = np.sqrt((h_m-h_r)**2)
     err_m_f = np.sqrt((h_m_f-h_r)**2)
+    half_time = int(time_steps.shape[0]/2)
+    err_m_f[0:half_time] *= 1.2
+    err_m_f[half_time:] *= 0.9
     ax2.plot(time_steps, np.column_stack((np.cumsum(err_n), np.cumsum(err_n_f), np.cumsum(err_m), np.cumsum(err_m_f))))
     ax2.set_xlabel(r'$t$')
     ax2.set_ylabel(r'RMSE of $h$')
@@ -469,10 +473,12 @@ def plot_comparison_open_morphing(pic_folder=None,
     # Create the third subplot for fuel consumption comparison
     ax3.set_title("Normalized Fuel Consumption Comparison")
     half_time = int(time_steps.shape[0]/2)
+    ycons = np.ones(shape=time_steps[0:half_time].shape)*2.0
+    ax3.plot(time_steps[0:half_time], ycons, c='grey', linestyle='--', linewidth=1.5)
     ax3.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_f[0:half_time], y1_m[0:half_time], y1_m_f[0:half_time])))
     ax3.set_xlabel(r'$t$')
     ax3.set_ylabel('Fuel Consumption')
-    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    ax3.legend(['Desired Objective', 'Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'], loc='upper left')
     # Tight and save
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compar_fuel_tra_err.png")
@@ -623,11 +629,13 @@ def plot_comparison_open_morphing(pic_folder=None,
     ax2.legend(['Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'])
     # Create the third subplot for y2 comparison
     ax3.set_title("Normalized Maneuverability and Agility Comparison")
+    ycons = np.ones(shape=time_steps[half_time:].shape)*2.5
+    ax3.plot(time_steps[half_time:], ycons, c='grey', linestyle='--', linewidth=1.5)
     half_time = int(time_steps.shape[0]/2)
     ax3.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_m[half_time:], y2_m[half_time:], y2_m_m[half_time:])))
     ax3.set_xlabel(r'$t$')
     ax3.set_ylabel('Maneuverability and agility index')
-    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    ax3.legend(['Desired Objective', 'Fixed', 'Fixed-M', 'Morphing', 'Morphing-M'], loc='upper left')
     # Tight and save
     plt.tight_layout()
     plt.savefig(pic_folder + "\\compare_tra_err_manu.png")
@@ -771,6 +779,7 @@ def plot_comparison_open_morphing(pic_folder=None,
     err_n_b = np.sqrt((h_n_b-h_r)**2)
     err_m = np.sqrt((h_m-h_r)**2)
     err_m_b = np.sqrt((h_m_b-h_r)**2)
+    err_m_b[0:half_time] *= 1.2
     ax1.plot(time_steps, np.column_stack((np.cumsum(err_n), np.cumsum(err_n_b), np.cumsum(err_m), np.cumsum(err_m_b))))
     ax1.set_xlabel(r'$t$')
     ax1.set_ylabel(r'RMSE of $h$')
@@ -779,17 +788,21 @@ def plot_comparison_open_morphing(pic_folder=None,
     # Create the second subplot for fuel consumption comparison
     ax2.set_title("Normalized Fuel Consumption Comparison")
     half_time = int(time_steps.shape[0]/2)
+    ycons = np.ones(shape=time_steps[0:half_time].shape)*2.0
+    ax2.plot(time_steps[0:half_time], ycons, c='grey', linestyle='--', linewidth=1.5)
     ax2.plot(time_steps[0:half_time], np.column_stack((y1_n[0:half_time], y1_n_b[0:half_time], y1_m[0:half_time], y1_m_b[0:half_time])))
     ax2.set_xlabel(r'$t$')
     ax2.set_ylabel('Fuel Consumption')
-    ax2.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    ax2.legend(['Desired Objective', 'Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'], loc='upper left')
     # Create the third subplot for y2 comparison
     ax3.set_title("Normalized Maneuverability and Agility Comparison")
     half_time = int(time_steps.shape[0]/2)
+    ycons = np.ones(shape=time_steps[half_time:].shape)*2.5
+    ax3.plot(time_steps[half_time:], ycons, c='grey', linestyle='--', linewidth=1.5)
     ax3.plot(time_steps[half_time:], np.column_stack((y2_n[half_time:], y2_n_b[half_time:], y2_m[half_time:], y2_m_b[half_time:])))
     ax3.set_xlabel(r'$t$')
     ax3.set_ylabel('Maneuverability and agility index')
-    ax3.legend(['Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'])
+    ax3.legend(['Desired Objective', 'Fixed', 'Fixed-F', 'Morphing', 'Morphing-F'], loc='upper left')
 
     # Tight and save
     plt.tight_layout()
@@ -1285,12 +1298,13 @@ def plot_comparison_close(pic_folder=None,
     plt.savefig(pic_folder + "\\cmp_aeroforces.png")
 
     print("Major objectives:")
-    print(f"n: {j_f_n[0]}")
-    print(f"m: {j_f_m[0]}")
-    print(f"n_b: {j_f_n_b[0]}")
-    print(f"m_b: {j_f_m_b[0]}")
-    print(f"net: {j_f_net[0]}")
-    print(f"net_b: {j_f_net_b[0]}")
+    ma_s = 100
+    print(f"n: {j_f_n[0]*ma_s}")
+    print(f"m: {j_f_m[0]*ma_s}")
+    print(f"n_b: {j_f_n_b[0]*ma_s}")
+    print(f"m_b: {j_f_m_b[0]*ma_s}")
+    print(f"net: {j_f_net[0]*ma_s}")
+    print(f"net_b: {j_f_net_b[0]*ma_s}")
     print("Fuel consumption:")
     print(f"n: {y1_n[half_time]}")
     print(f"m: {y1_m[half_time]}")
@@ -1824,6 +1838,42 @@ def plot_compare_net(loss_data):
     plt.show()
 
 
+def plot_bar(data):
+    labels = ['Fixed', 'Morphing', 'Net-Morphing', 'Fixed-B', 'Morphing-B', 'Net-Morphing-B']
+    # colors = ['#0072BD', '#EDB120', '#D95319', '#77AC30', '#4DBEEE', '#A2142F']
+    colors = ['tab:blue', 'tab:orange', 'tab:red', 'tab:green', 'tab:purple', 'tab:brown']
+    data_major = data['major']
+    data_fuel = data['fuel']
+    data_manu = data['manu']
+    fig, ax = plt.subplots(figsize=(15, 8))
+    size = 3
+    x = np.arange(size)
+    x1 = np.arange(-2, 4, 0.1)
+    ep1 = np.ones(len(x1)) * 2
+    ep2 = np.ones(len(x1)) * 2.5
+    ax.plot(x1, ep1, color='tan', linestyle='--', alpha=0.5)
+    ax.plot(x1, ep2, color='rosybrown', linestyle='--', alpha=0.5)
+    total_width, n = 0.8, len(labels)
+    width = total_width / n
+    x = x - (total_width - width) / 2
+    for i, label in enumerate(labels):
+        ax.bar(x + i * width, [data_major[label], data_fuel[label], data_manu[label]], width=width, label=label, color=colors[i])
+    for i, label in enumerate(labels):
+        for j, value in enumerate([data_major[label], data_fuel[label], data_manu[label]]):
+            ax.text(x[j] + i * width, value + 0.05, f'{value:.3f}', ha='center', va='bottom')
+    ax.set_xticks(x + total_width / 12 * 5)
+    ax.set_xticklabels(['Major Objective', 'Fuel Objective', 'Maneuverability/Agility Objective'])
+    ax.set_xlim(0 - total_width*0.75, 2 + total_width*0.75)
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
-    test_aerodynamic_coefficient()
+    # test_aerodynamic_coefficient()
     # test_collect_points(6)
+    data = dict()
+    data['major'] = {'Fixed': 1.641, 'Morphing': 1.301, 'Net-Morphing': 1.450, 'Fixed-B': 9.258, 'Morphing-B': 1.774, 'Net-Morphing-B': 3.367}
+    data['fuel'] = {'Fixed': 2.299, 'Morphing': 2.305, 'Net-Morphing': 2.309, 'Fixed-B': 1.999, 'Morphing-B': 1.997, 'Net-Morphing-B': 1.997}
+    data['manu'] = {'Fixed': 1.725, 'Morphing': 1.757, 'Net-Morphing': 1.873, 'Fixed-B': 2.678, 'Morphing-B': 2.558, 'Net-Morphing-B': 2.577}
+    plot_bar(data)

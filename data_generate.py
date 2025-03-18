@@ -109,10 +109,12 @@ def reload_data(dataset_path):
     x_all = dataset.x_all
     y_all = dataset.y_all
     z_all = dataset.z_all
+    u_all = dataset.u_all
     x_original = x_all*dataset.x_std + dataset.x_mean
     y_original = y_all*dataset.y_std + dataset.y_mean
     z_original = z_all*dataset.z_std + dataset.z_mean
-    t_o = [x_original, y_original, z_original]
+    u_original = u_all*dataset.u_std + dataset.u_mean
+    t_o = [x_original, y_original, z_original, u_original]
     return t_o
 
 
