@@ -77,7 +77,10 @@ if __name__ == '__main__':
     stat_path = 'data/opt_stats_02-26-1153.npz'
     t_o = reload_data(dataset_path)
     # t_o = results_m_b[0:3]
+    start_time = time.time()
     results_net = simu.simulate_auxiliary(x0=config_opc.PARA_X0, trajectory_ref=tra_ref, control_method="nn", net_path=net_path, stat_path=stat_path, trajectory_opt=t_o)
+    end_time = time.time()
+    print(f"Net simulation time: {end_time - start_time:.2f} seconds")
     # Save
     x_net, y_net, z_net, u_net, j_f_net, aero_info_net = results_net
     np.savez(f'{pic_folder}\\data_net.npz', x_net=x_net, y_net=y_net, z_net=z_net, u_net=u_net, j_f_net=j_f_net, aero_info_net=aero_info_net)
